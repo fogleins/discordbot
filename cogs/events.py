@@ -172,6 +172,7 @@ class Events(commands.Cog):
             if not member.bot:
                 now = datetime.datetime.now()
                 kiirhato = False
+                beni_joinolt = False
                 nem_mute_az_event_oka = (bool((before.deaf == after.deaf)
                     and (before.mute == after.mute)
                     and (before.self_deaf == after.self_deaf)
@@ -181,8 +182,14 @@ class Events(commands.Cog):
                     and (before.deaf == after.deaf) and (before.mute == after.mute)
                     and (before.self_deaf == after.self_deaf) and (before.self_mute == after.self_mute)
                     and (member.id != 549654750585421825)):
-                        uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
-                        kiirhato = True
+                        if member.id == 418727904680083457:  # Beni ID
+                            uzenet = f":open_mouth: :open_mouth: {member.mention} " \
+                                     + "volyszba dzsoinolt!!!! :open_mouth: :open_mouth:"
+                            beni_joinolt = True
+                            kiirhato = True
+                        else:
+                            uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+                            kiirhato = True
                 elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
                     and nem_mute_az_event_oka):
                         uzenet = f"**{member.name}** has disconnected from **{before.channel.name}**"
@@ -206,6 +213,8 @@ class Events(commands.Cog):
                     embed.set_thumbnail(url=member.avatar_url)
                     embed.set_author(name=member.name + " has updated their VoiceState", icon_url=member.avatar_url)
                     await self.bot.get_channel(550724640469942285).send(embed=embed)
+                    if beni_joinolt:  # general-1337-be is beküldi
+                        await self.bot.get_channel(550724640469942285).send(embed=embed)
         except Exception as e:
             await self.bot.get_channel(550724640469942285).send(f"on_voice_state_update error: {e}")
 
