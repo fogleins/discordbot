@@ -36,7 +36,7 @@ class Events(commands.Cog):
         )
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_author(name=member.name + " has joined the server", icon_url=member.avatar_url)
-        embed.add_field(name='Hey,', value = f"{simiid} you need to see this!")
+        embed.add_field(name='Hey,', value=f"{simiid} you need to see this!")
         await self.bot.get_channel(550724640469942285).send(embed=embed)
 
     @commands.Cog.listener()
@@ -150,9 +150,10 @@ class Events(commands.Cog):
             except IndexError:
                 pass
         else:
-            kiirando_uzenet = (f"{user.name} has removed {reaction.emoji} from {reaction.message.author}'s" +
-                f" message in channel {reaction.message.channel.mention} from the following message:" +
-                f" {reaction.message.content}")
+            # TODO: 3 idézőjeles multi-line string működik így?
+            kiirando_uzenet = f"""{user.name} has removed {reaction.emoji} from {reaction.message.author}'s
+                message in channel {reaction.message.channel.mention} from the following message:
+                {reaction.message.content}"""
             kiirhato = True
         embed = discord.Embed(
             title=f"``{now}:`` ",
@@ -160,7 +161,7 @@ class Events(commands.Cog):
             colour=discord.Colour.dark_teal()
         )
         embed.set_thumbnail(url=reaction.message.author.avatar_url)
-        embed.set_author(name=user.name + ' has removed a reaction', icon_url=user.avatar_url)
+        embed.set_author(name=user.name + " has removed a reaction", icon_url=user.avatar_url)
         if kiirhato:
             await self.bot.get_channel(550724640469942285).send(embed=embed)
 
@@ -191,19 +192,17 @@ class Events(commands.Cog):
                             uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
                             kiirhato = True
                 elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
-                    and nem_mute_az_event_oka):
-                        uzenet = f"**{member.name}** has disconnected from **{before.channel.name}**"
-                        kiirhato = True
+                        and nem_mute_az_event_oka):
+                    uzenet = f"**{member.name}** has disconnected from **{before.channel.name}**"
+                    kiirhato = True
                 elif ((before.channel.guild.id != 399595937409925140) and
-                    (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
-                        uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
-                        kiirhato = True
-                elif ((before.channel.guild.id == 399595937409925140)
-                    and (after.channel.guild.id == 399595937409925140)
-                    and (nem_mute_az_event_oka == True)):
-                        uzenet = (f"**{member.name}** has moved from **{before.channel.name}** to" +
-                            f" **{after.channel.name}**")
-                        kiirhato = True
+                        (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                    uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+                    kiirhato = True
+                elif ((before.channel.guild.id == 399595937409925140) and
+                        (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                    uzenet = f"**{member.name}** has moved from **{before.channel.name}** to **{after.channel.name}**"
+                    kiirhato = True
                 if kiirhato:
                     embed = discord.Embed(
                         title=f"``{now}:`` ",
@@ -214,7 +213,7 @@ class Events(commands.Cog):
                     embed.set_author(name=member.name + " has updated their VoiceState", icon_url=member.avatar_url)
                     await self.bot.get_channel(550724640469942285).send(embed=embed)
                     if beni_joinolt:  # general-1337-be is beküldi
-                        await self.bot.get_channel(550724640469942285).send(embed=embed)
+                        await self.bot.get_channel(484010396076998686).send(embed=embed)
         except Exception as e:
             await self.bot.get_channel(550724640469942285).send(f"on_voice_state_update error: {e}")
 
@@ -230,7 +229,7 @@ class Events(commands.Cog):
             )
             embed.set_thumbnail(url=ctx.message.author.avatar_url)
             embed.set_author(name='Command error', icon_url='https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter/185/cross-mark_274c.png')
-            await ctx.send(embed = embed)
+            await ctx.send(embed=embed)
         except Exception as e:
             print("Command error. I wasn't able to send an error message to the Discord channel in which" +
                 f" I've encountered the error. ({e})")
