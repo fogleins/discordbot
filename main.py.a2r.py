@@ -17,7 +17,8 @@ extensions = [
     'cogs.commands',
     'cogs.balaton',
     'cogs.experimental',
-    'cogs.musicSajat'
+    # 'cogs.musicSajat'
+    'cogs.bmesch'
 ]
 
 
