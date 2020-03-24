@@ -12,9 +12,10 @@ class Hardware(commands.Cog):
     async def hdd(self, ctx):
         """Prints the HDD's status using HDSentinel"""
         try:
-            j = ""  # Linux pw goes here
-            p = ""  # Full path of the program that needs to be run goes here
-            process = Popen([f"echo {j} | sudo -S {p}"], stdout=PIPE, shell=True)
+            # running the program as sudo is now handled using a shell script
+            # for further information, read the following forum thread:
+            # https://askubuntu.com/questions/155791/how-do-i-sudo-a-command-in-a-script-without-being-asked-for-a-password
+            process = Popen(["sudo /srv/shared/Simi/programozas/discordbot/hdsentinel.sh"], stdout=PIPE, shell=True)
             (output, err) = process.communicate()
             exit_code = process.wait()
 
