@@ -4,13 +4,14 @@ import asyncio
 import discord
 from discord.ext import commands
 
-class Experimental(commands.Cog, name = "Experimental"):
+
+class Experimental(commands.Cog, name="Experimental"):
 
     def __init__(self, bot):
         self.bot = bot
 
-    #just wanna see if it really works
-    #it doesnt
+    # just wanna see if it really works
+    # it doesnt
     # @commands.Cog.listener()
     # async def on_typing(self, ctx, channel, user, when):
     #     rnd = random.randint(1, 2)
@@ -20,7 +21,7 @@ class Experimental(commands.Cog, name = "Experimental"):
     #         uzenet = "Hey, {} are you sure? :thinking:".format(user.display_name)
     #     await ctx.send("{}".format(uzenet), delete_after = 3)
 
-    #maybe bot.on_error??
+    # maybe bot.on_error??
     @commands.Cog.listener()
     # async def on_error(self, event, *args, **kwargs):
     async def on_error(self, event):
@@ -36,8 +37,8 @@ class Experimental(commands.Cog, name = "Experimental"):
             #     kwargs_str = " "
             embed = discord.Embed(
                 title=f'``{now}:`` ',
-                description=(f":interrobang: Non-command error: {event} rasied an exception:"),# +
-                    #f" args: {args_str}; kwargs: {kwargs_str}"),
+                description=f":interrobang: Non-command error: {event} rasied an exception:",# +
+                    # f" args: {args_str}; kwargs: {kwargs_str}"),
                 colour=discord.Colour.from_rgb(255, 0, 13)
             )
             embed.set_thumbnail(url='https://images-ext-1.discordapp.net/external/URc4P573HFyaYe6vysVJ5GDeG4yf675sa-vT9IjYMao/%\3Fsize%3D1024/https/cdn.discordapp.com/icons/399595937409925140/b80c7368fbb679d750c7c0809295a555.webp')
@@ -46,12 +47,12 @@ class Experimental(commands.Cog, name = "Experimental"):
         except Exception as e:
             print(f"Non-command error. Couldn't send an error message to the logs channel. ({e})")
 
-    #PMek kezelése (?)
-    #note: rewriteban erre elvileg van külön event
+    # PMek kezelése (?)
+    # note: rewriteban erre elvileg van külön event
     @commands.Cog.listener()
     async def on_message(self, message):
         if message.author.id != message.guild.id:
-            #ascii emojis
+            # ascii emojis
             try:
                 ch = message.channel
                 if message.content.startswith("\\shrug"):
@@ -66,23 +67,23 @@ class Experimental(commands.Cog, name = "Experimental"):
                 elif message.content.startswith("\\lenny"):
                     await message.delete()
                     await ch.send("( ͡° ͜ʖ ͡°)")
-                elif message.content.startswith("\\wat"): #Want-A-Taco
+                elif message.content.startswith("\\wat"): # Want-A-Taco
                     await message.delete()
-                    #kikommentelt rész nagyjából jó, csak kicsit nagy
-                        #a sorok közötti távolság
+                    # kikommentelt rész nagyjából jó, csak kicsit nagy
+                        # a sorok közötti távolság
                     # await ch.send("{\\__\/}")
                     # await ch.send("(●_●)")
                     # await ch.send("( >🌮 Want a taco?")
-                    #ez talán még jobb
+                    # ez talán még jobb
                     # await ch.send("{\\\_\_\/}\n(●\_●)\n( >🌮 Want a taco?")
                     await ch.send("{\\\_\/}\n(●\_●)\n( >🌮 Want a taco?")
-                elif message.content.startswith("\\"): #hierarchiában lejjebb van, így a fentieknél nem fut le
+                elif message.content.startswith("\\"):  # hierarchiában lejjebb van, így a fentieknél nem fut le
                     await ch.send(f"Command {message.content} does not exist.")
                 else:
                     pass
             except Exception as e:
                 print("Error: " + e)
-        else: #ha PM
+        else:  # ha PM
             uzenet = message.content
             felado = message.author
             await self.bot.get_channel(358992693453652000).send(f'{felado}: {uzenet}')
@@ -383,7 +384,7 @@ class Experimental(commands.Cog, name = "Experimental"):
     #             await ctx.send("I'm either not connected to any voice channel or no audio is being played.")
     #     except Exception as e:
     #         await ctx.send(f"Couldn't pause the song. ({e})")
-    
+
     # @commands.command(aliases = ['r', 'res'])
     # async def resume(self, ctx):
     #     """Resumes a paused song."""
@@ -451,7 +452,7 @@ class Experimental(commands.Cog, name = "Experimental"):
     #     except Exception as e:
     #         await ctx.send(f"I wasn't able to disconnect. ({e})")
 
-    #admin-only reminder
+    # admin-only reminder
     @commands.command(aliases = ['remind'])
     async def reminder(self, ctx, time, title):
         """Admin-only. Sets a reminder. Syntax: ?remind time[int, in seconds] title[str, between ""]"""
@@ -459,7 +460,7 @@ class Experimental(commands.Cog, name = "Experimental"):
             try:
                 time = int(time)
                 title = str(title)
-                #emoji https://www.fileformat.info/info/unicode/char/2705/index.htm
+                # emoji https://www.fileformat.info/info/unicode/char/2705/index.htm
                 await ctx.message.add_reaction(u"\u2705")
                 await asyncio.sleep(time)
                 await ctx.send(f"{ctx.guild.owner.mention} you wanted me to remind you to {title}")
@@ -468,13 +469,13 @@ class Experimental(commands.Cog, name = "Experimental"):
         else:
             await ctx.send("This command is admin-only.")
 
-    @commands.command(hidden = True)
+    @commands.command(hidden=True)
     # ahhoz, hogy más szerveren lévő user egyes adatait (pl. 
     # a jelenlegi voice channel nevét, a szerver nevét megkapjuk
     # member helyett user-ként kellene kezelni, de ezeknek nincsenek
     # ilyen attribútumai (pl. user.status, user.voice), így ennek a 
     # parancsnak nem igazán van így értelme)
-    #async def tesztusrinfo(self, ctx, member: discord.User): #ez így nem működik
+    # async def tesztusrinfo(self, ctx, member: discord.User): #ez így nem működik
     # helyes megoldás lenne:
     async def tesztusrinfo(self, ctx, member: discord.Member):
         try:
@@ -483,7 +484,7 @@ class Experimental(commands.Cog, name = "Experimental"):
         except Exception as e:
             await ctx.send(f"Error: {e}")
 
-    #tesztelésre vár + képeket be kell szerezni
+    # tesztelésre vár + képeket be kell szerezni
     @commands.command(aliases = ['Kóka', 'kóka'])
     async def koka(self, ctx):
         """Best command to date."""
@@ -495,7 +496,7 @@ class Experimental(commands.Cog, name = "Experimental"):
 
     @commands.command()
     async def playthis(self, ctx, *, url):
-        'Plays your most played songs/playlists. (Under testing, might be buggy)'
+        """Plays your most played songs/playlists. (Under testing, might be buggy)"""
         message = ctx.message
         teljes_uzenet_splitelve = ctx.message.content.split()
         link = teljes_uzenet_splitelve[len(teljes_uzenet_splitelve) - 1]
@@ -506,17 +507,16 @@ class Experimental(commands.Cog, name = "Experimental"):
     #ugyanaz, mint a spotiplay-nél
     @commands.command(aliases=['kutyafül'])
     async def kokalista(self, ctx):
-        'Kóka úr kedvelt YT videóit tartalmazó playlistet kezdi lejátszani'
+        """Kóka úr kedvelt YT videóit tartalmazó playlistet kezdi lejátszani"""
         lista_url = 'https://www.youtube.com/playlist?list=LLaPUXOjl02GaQKAtRi1KnxQ'
-        #channel = ctx.channel
         message = ctx.message
         await self.bot.get_channel(443844561270341633).send(f'!play {lista_url}')
         await message.delete()
-        #await ctx.send("I've forwarded your request to Rhytm bot! Your song(s) should start playing in a" +
+        # await ctx.send("I've forwarded your request to Rhytm bot! Your song(s) should start playing in a" +
         #    few seconds. :headphones: ")
 
-    #gyakorlatilag mehet commands.py-ba
-    @commands.command(aliases = ['edit', 'limit', 'max']) #max user egy voice channelben
+    # gyakorlatilag mehet commands.py-ba
+    @commands.command(aliases=['edit', 'limit', 'max'])  # max user egy voice channelben
     async def changelimit(self, ctx, limit):
         """Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani egy órára. Syntax: ?max [limit(int)]"""
         now = datetime.datetime.now()
@@ -528,17 +528,16 @@ class Experimental(commands.Cog, name = "Experimental"):
         try:
             limit = int(limit)
         except ValueError as e:
-            ctx.send(f":x: Error: You must enter an integer. ({e})", delete_after = 10)
+            ctx.send(f":x: Error: You must enter an integer. ({e})", delete_after=10)
         await ctx.message.delete()
         if top_role >= minimum_role:
             if (limit > 0) and (limit < 99):
                 try:
-                    await channel_to_edit.edit(user_limit = limit)
-                    await ctx.send(f"User limit updated to {limit}. Limit will be set to unlimited in 60" +
-                        " minutes.",
-                        delete_after = 30)
-                    await asyncio.sleep(3300)
-                    await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after = 120)
+                    await channel_to_edit.edit(user_limit=limit)
+                    await ctx.send(f"User limit updated to {limit}. Limit will be set to unlimited in 60 minutes.",
+                        delete_after=30)
+                    await asyncio.sleep(3300 * 2.5)
+                    await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
                     embed = discord.Embed(
                         title=f'``{now}:`` ',
                         description=f'{ctx.author.name} has changed the user limit of' +
@@ -547,14 +546,14 @@ class Experimental(commands.Cog, name = "Experimental"):
                     )
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     embed.set_author(name='Voice channel user limit updated', icon_url=ctx.author.avatar_url)
-                    await self.bot.get_channel(550724640469942285).send(embed = embed)
+                    await self.bot.get_channel(550724640469942285).send(embed=embed)
                     try:
                         await asyncio.sleep(300)
-                        await channel_to_edit.edit(user_limit = 0)
-                        await ctx.send("User limit has been set to unlimited.", delete_after = 10)
+                        await channel_to_edit.edit(user_limit=0)
+                        await ctx.send("User limit has been set to unlimited.", delete_after=10)
                     except Exception as error:
                         try:
-                            await self.bot.get_channel(549709362206081076).send("Couldn't update channel" + 
+                            await self.bot.get_channel(549709362206081076).send("Couldn't update channel" +
                                 f"user limit. ({error})")
                         except:
                             print(f"Couldn't update channel user limit: {error}")
@@ -562,18 +561,18 @@ class Experimental(commands.Cog, name = "Experimental"):
                     await ctx.send(f"Discord error: {discorderr}")
                 except Exception as err:
                     try:
-                        await ctx.send(f"Error: {err}", delete_after = 30)
+                        await ctx.send(f"Error: {err}", delete_after=30)
                     except Exception as error:
                         print(f"Error: {error}")
             elif (limit < 0) or (limit > 99):
                 try:
-                    await ctx.send("Limit must be an integer between 1 and 99.", delete_after = 30)
+                    await ctx.send("Limit must be an integer between 1 and 99.", delete_after=30)
                 except Exception:
                     pass
             elif limit == 0:
                 try:
-                    await channel_to_edit.edit(user_limit = limit)
-                    #await ctx.send("Channel user limit has been set to unlimited.")
+                    await channel_to_edit.edit(user_limit=limit)
+                    # await ctx.send("Channel user limit has been set to unlimited.")
                     embed = discord.Embed(
                         title=f'``{now}:``',
                         description=f'{ctx.author.name} has set the user limit of' +
@@ -582,16 +581,16 @@ class Experimental(commands.Cog, name = "Experimental"):
                     )
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     embed.set_author(name='Voice channel user limit updated', icon_url=ctx.author.avatar_url)
-                    await ctx.send(embed = embed)
+                    await ctx.send(embed=embed)
                     await asyncio.sleep(1)
-                    await self.bot.get_channel(550724640469942285).send(embed = embed)
+                    await self.bot.get_channel(550724640469942285).send(embed=embed)
                 except Exception:
                     pass
         else:
             await ctx.send("You aren't allowed to change the channel's settings.")
 
-    #mivel a music botok nem játszák le amit másik bot kér, ezért csak shortcutnak jó
-    @commands.command(aliases = ['splay'])
+    # mivel a music botok nem játszák le amit másik bot kér, ezért csak shortcutnak jó
+    @commands.command(aliases=['splay'])
     async def spotiplay(self, ctx, *args):
         """Sends a play command with the song to which the requester is currently listening to."""
         member = ctx.message.author
@@ -599,12 +598,12 @@ class Experimental(commands.Cog, name = "Experimental"):
             if member.activity.name == 'Spotify':
                 try:
                     spotify = member.activity
-                    await ctx.send(f"!play {spotify.title} by {spotify.artist}", delete_after = 30)
+                    await ctx.send(f"!play {spotify.title} by {spotify.artist}", delete_after=30)
                 except Exception:
                     pass
             else:
                 try:
-                    await ctx.send("No Spotify listening activity detected.", delete_after = 5)
+                    await ctx.send("No Spotify listening activity detected.", delete_after=5)
                 except Exception:
                     pass
         else:
@@ -613,7 +612,7 @@ class Experimental(commands.Cog, name = "Experimental"):
             except Exception:
                 pass
 
-    #gyakorlatilag mehet commands.py-ba
+    # gyakorlatilag mehet commands.py-ba
     @commands.command()
     async def ping(self, ctx):
         """Checks the bot's latency."""
@@ -621,17 +620,17 @@ class Experimental(commands.Cog, name = "Experimental"):
         guild = ctx.message.guild
         embed = discord.Embed(
             title=f'``{now}:`` ',
-            description = f'Current ping to *{guild.name}* is {round((self.bot.latency * 1000), 2)} ms',
-            colour = discord.Colour.blurple()
+            description=f'Current ping to *{guild.name}* is {round((self.bot.latency * 1000), 2)} ms',
+            colour=discord.Colour.blurple()
         )
         embed.set_thumbnail(url=guild.icon_url)
         embed.set_author(name='Pong!', icon_url=self.bot.user.avatar_url)
         embed.set_footer(text=f'This message was requested by {ctx.author.name}')
         await ctx.message.delete()
-        await ctx.send(embed = embed)
+        await ctx.send(embed=embed)
 
     # sub role automatikus hozzáadása
-    @commands.command(hidden = True)
+    @commands.command(hidden=True)
     async def sub(self, ctx):
         try:
             sub_role = discord.utils.get(ctx.guild.roles, name='sub')
@@ -643,6 +642,7 @@ class Experimental(commands.Cog, name = "Experimental"):
             await ctx.send(f"Hey {member.mention}, access granted!")
         except Exception as error:
             await ctx.send(f"Something went wrong. :( ({error})")
+
 
 def setup(bot):
     bot.add_cog(Experimental(bot))

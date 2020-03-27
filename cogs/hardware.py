@@ -8,10 +8,16 @@ class Hardware(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    @commands.command()
+    @commands.group(invoke_without_command=True)
+    async def rbp(self, ctx):  # rbp = raspberry pi
+        await ctx.send("This is a command group, which currently has a single subcommand: ``hdd``. "
+                       "Syntax: ``?rbp hdd``")
+
+    @rbp.command()
     async def hdd(self, ctx):
         """Prints the HDD's status using HDSentinel"""
         try:
+            await ctx.message.delete()
             # running the program as sudo is now handled using a shell script
             # for further information, read the following forum thread:
             # https://askubuntu.com/questions/155791/how-do-i-sudo-a-command-in-a-script-without-being-asked-for-a-password
@@ -28,9 +34,28 @@ class Hardware(commands.Cog):
                 output.pop(2)   # removes the hdd's serial number from the output
                 output = "\n".join(output)
 
-                await ctx.send(f"```{hds_credits}\n{hds_startupmessage}\n{output}\n\nProgram returned {exit_code}```")
+                await ctx.send(f"```{hds_credits}\n\n{hds_startupmessage}\n{output}\n\nProgram returned {exit_code}```")
             else:
                 await ctx.send(f"Valami :poop:\n{err.decode()}\nExit code: {exit_code}")
+        except Exception as err:
+            print(err)
+
+    @rbp.command()
+    async def neofetch(self, ctx):
+        """Gets the neofetch message and sends it to the Discord channel it was requested in"""
+        try:
+            await ctx.message.delete()
+            # Both screenfetch and neofetch return highly formatted results, which do not appear in Discord correctly,
+            # therefore this command is implemented for testing purposes only.
+            process = Popen(["neofetch"], stdout=PIPE, shell=True)
+            (output, err) = process.communicate()
+            exit_code = process.wait()
+
+            if err is None:
+                output = output.decode()
+                await ctx.send(f"```{output}\nProgram returned {exit_code}```")
+            else:
+                await ctx.send(f"Error: {err.decode()}")
         except Exception as err:
             print(err)
 
