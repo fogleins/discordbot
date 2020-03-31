@@ -1,4 +1,5 @@
 import random
+import math  # used in function 'changelimit'
 import datetime
 import asyncio
 import discord
@@ -453,7 +454,7 @@ class Experimental(commands.Cog, name="Experimental"):
     #         await ctx.send(f"I wasn't able to disconnect. ({e})")
 
     # admin-only reminder
-    @commands.command(aliases = ['remind'])
+    @commands.command(aliases=['remind'])
     async def reminder(self, ctx, time, title):
         """Admin-only. Sets a reminder. Syntax: ?remind time[int, in seconds] title[str, between ""]"""
         if ctx.message.author.id == ctx.guild.owner.id:
@@ -485,14 +486,14 @@ class Experimental(commands.Cog, name="Experimental"):
             await ctx.send(f"Error: {e}")
 
     # tesztelésre vár + képeket be kell szerezni
-    @commands.command(aliases = ['Kóka', 'kóka'])
+    @commands.command(aliases=['Kóka', 'kóka'])
     async def koka(self, ctx):
         """Best command to date."""
         rnd = random.randint(1, 4)
         # kep = discord.File(fp = '/mnt/torrent/rwLive/cogs/koka' + str(rnd) + '.jpg')
-        kep = discord.File(fp = '/srv/shared/Simi/programozas/discordbot/rwLive/cogs/koka' + str(rnd) + '.jpg')
+        kep = discord.File(fp='/srv/shared/Simi/programozas/discordbot/rwLive/cogs/koka' + str(rnd) + '.jpg')
         await ctx.message.delete()
-        await ctx.send(file = kep)
+        await ctx.send(file=kep)
 
     @commands.command()
     async def playthis(self, ctx, *, url):
@@ -504,7 +505,7 @@ class Experimental(commands.Cog, name="Experimental"):
         await self.bot.get_channel(music_bot_channel_id).send(f'!play {link}')
         await message.delete()
 
-    #ugyanaz, mint a spotiplay-nél
+    # ugyanaz, mint a spotiplay-nél
     @commands.command(aliases=['kutyafül'])
     async def kokalista(self, ctx):
         """Kóka úr kedvelt YT videóit tartalmazó playlistet kezdi lejátszani"""
@@ -515,79 +516,83 @@ class Experimental(commands.Cog, name="Experimental"):
         # await ctx.send("I've forwarded your request to Rhytm bot! Your song(s) should start playing in a" +
         #    few seconds. :headphones: ")
 
+    # THIS FUNCTION IS YET TO BE TESTED!
     # gyakorlatilag mehet commands.py-ba
     @commands.command(aliases=['edit', 'limit', 'max'])  # max user egy voice channelben
-    async def changelimit(self, ctx, limit):
-        """Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani egy órára. Syntax: ?max [limit(int)]"""
-        now = datetime.datetime.now()
-        requester = ctx.message.author
-        guild = ctx.message.guild
-        channel_to_edit = discord.utils.get(guild.voice_channels, name='Itt-nem-zavar-a-Szédületes')
-        minimum_role = discord.utils.get(ctx.guild.roles, name='Balaton Squad')
-        top_role = requester.top_role
+    async def changelimit(self, ctx, limit: int, time_length: float = 120):
+        """
+            Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani adott időre.
+            Syntax: ?max [limit(int)] *[ido_percben(float)=120]
+        """
+        """
+            PARAMETERS
+            ----------
+            limit: int
+                The number of max users allowed in the voice channel
+            time_interval: float
+                The number of minutes until the limit will reset to unlimited, default is 120
+        """
         try:
-            limit = int(limit)
-        except ValueError as e:
-            ctx.send(f":x: Error: You must enter an integer. ({e})", delete_after=10)
-        await ctx.message.delete()
-        if top_role >= minimum_role:
-            if (limit > 0) and (limit < 99):
-                try:
+            now = datetime.datetime.now()
+            if time_length is None:
+                time_length = 120  # zh-k miatt inkább 2 órára lett növelve
+            elif time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
+                await ctx.send(":x: Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
+                return
+            elif time_length - 9 < 1:  # A warning message is sent 5 minutes before the end of the reservation
+                await ctx.send(":x: Minimum 10 percre kell foglalnod.")
+                return
+
+            time_length = math.ceil(time_length * 60)  # converting minutes to seconds
+            requester = ctx.message.author
+            guild = ctx.message.guild
+            channel_to_edit = discord.utils.get(guild.voice_channels, name='Itt-nem-zavar-a-Szédületes')
+            minimum_role = discord.utils.get(ctx.guild.roles, name='Balaton Squad')
+            top_role = requester.top_role
+            await ctx.message.delete()
+
+            if top_role >= minimum_role:
+                if (limit > 0) and (limit < 99):
                     await channel_to_edit.edit(user_limit=limit)
-                    await ctx.send(f"User limit updated to {limit}. Limit will be set to unlimited in 60 minutes.",
-                        delete_after=30)
-                    await asyncio.sleep(3300 * 2.5)
+                    await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
+                                   f"{time_length / 60} minutes.", delete_after=30)
+                    # --- EMBED IS BEING SENT TO #LOGS ---
+                    embed = discord.Embed(
+                        title=f"``{now}:``",
+                        description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
+                                    f"to {limit} for {time_length} minutes.",
+                        colour=discord.Colour.magenta()
+                    )
+                    embed.set_thumbnail(url=ctx.author.avatar_url)
+                    embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
+                    await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
+                    # --- END OF EMBED ---
+
+                    await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
                     await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
-                    embed = discord.Embed(
-                        title=f'``{now}:`` ',
-                        description=f'{ctx.author.name} has changed the user limit of' +
-                            f' *Itt-nem-zavar-a-Szédületes* to {limit}',
-                        colour=discord.Colour.magenta()
-                    )
-                    embed.set_thumbnail(url=ctx.author.avatar_url)
-                    embed.set_author(name='Voice channel user limit updated', icon_url=ctx.author.avatar_url)
-                    await self.bot.get_channel(550724640469942285).send(embed=embed)
-                    try:
-                        await asyncio.sleep(300)
-                        await channel_to_edit.edit(user_limit=0)
-                        await ctx.send("User limit has been set to unlimited.", delete_after=10)
-                    except Exception as error:
-                        try:
-                            await self.bot.get_channel(549709362206081076).send("Couldn't update channel" +
-                                f"user limit. ({error})")
-                        except:
-                            print(f"Couldn't update channel user limit: {error}")
-                except discord.DiscordException as discorderr:
-                    await ctx.send(f"Discord error: {discorderr}")
-                except Exception as err:
-                    try:
-                        await ctx.send(f"Error: {err}", delete_after=30)
-                    except Exception as error:
-                        print(f"Error: {error}")
-            elif (limit < 0) or (limit > 99):
-                try:
-                    await ctx.send("Limit must be an integer between 1 and 99.", delete_after=30)
-                except Exception:
-                    pass
-            elif limit == 0:
-                try:
+                    await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
+                    await channel_to_edit.edit(user_limit=0)
+                    await ctx.send("User limit has been set to unlimited.", delete_after=10)
+                elif (limit < 0) or (limit > 99):
+                    await ctx.send(":x: Limit must be between 1 and 99.", delete_after=30)
+                    return
+                elif limit == 0:
                     await channel_to_edit.edit(user_limit=limit)
-                    # await ctx.send("Channel user limit has been set to unlimited.")
                     embed = discord.Embed(
-                        title=f'``{now}:``',
-                        description=f'{ctx.author.name} has set the user limit of' +
-                            ' *Itt-nem-zavar-a-Szédületes* to unlimited',
+                        title=f"``{now}:``",
+                        description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} "
+                                    "to unlimited",
                         colour=discord.Colour.magenta()
                     )
                     embed.set_thumbnail(url=ctx.author.avatar_url)
-                    embed.set_author(name='Voice channel user limit updated', icon_url=ctx.author.avatar_url)
+                    embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
                     await ctx.send(embed=embed)
                     await asyncio.sleep(1)
                     await self.bot.get_channel(550724640469942285).send(embed=embed)
-                except Exception:
-                    pass
-        else:
-            await ctx.send("You aren't allowed to change the channel's settings.")
+            else:
+                await ctx.send("You aren't allowed to change the channel's settings.")
+        except Exception as e:
+            print(f"Error in function 'changelimit'. [{e}]")
 
     # mivel a music botok nem játszák le amit másik bot kér, ezért csak shortcutnak jó
     @commands.command(aliases=['splay'])
