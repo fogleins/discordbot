@@ -10,26 +10,6 @@ class Commands(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    # TODO: nem kell
-    @commands.command()
-    async def helpme(self, ctx):
-        """Basic info"""
-        await ctx.send("Development in progress. If you need help with commands, type '?help', "
-                       "if you need further assistance, mention Simi (@Simi#4387)")
-
-    # TODO: nem kell
-    @commands.command(aliases=["hi", "háló", "halo"])
-    async def hello(self, ctx):
-        """Says world"""
-        await ctx.send("world")
-        await ctx.message.delete()
-
-    # TODO: nem kell
-    @commands.command()
-    async def add(self, ctx, left: int, right: int):
-        """Adds two numbers together."""
-        await ctx.send(left + right)
-
     @commands.command()
     async def changelog(self, ctx):
         """Prints what's new in this version"""
@@ -163,80 +143,12 @@ class Commands(commands.Cog):
         else:
             await ctx.send("You don't have a high enough role to do that. :no_entry:")
 
-    # TODO: nem kell
-    # check function provided by discord.py could be used instead of the if id == admin_id statement
-    @commands.command()
-    async def update(self, ctx):
-        """The bot sends this message before getting an update."""
-        if ctx.author.id == 358992693453652000:
-            msg = ":warning: I'll be offline for a few minutes. I'll be fresher when I come back. :warning:"
-            await ctx.send(f"{msg}")
-        else:
-            await ctx.send("You don't have permissions to do that. :no_entry:")
-
-    # TODO: nem kell
-    # TODO: *args?
-    @commands.command(aliases=["CS", "CSGO", "csgo", "mm"])
-    async def cs(self, ctx):
-        """Asks the @1337 group if they want to play CS."""
-        darab = ctx.message.content.split()
-        darab_command_nelkul = darab[1:]
-        kiirashoz = " ".join(darab_command_nelkul)
-        await ctx.message.delete()
-        if len(darab) >= 2:
-            await ctx.send(f"<@&444159433421881355> cs {kiirashoz} ?")
-        else:
-            await ctx.send("<@&444159433421881355> valaki cs?")
-
-    # TODO: nem kell
-    # TODO: *args?
-    @commands.command(aliases=["LoL", "Lol", "liga"])
-    async def lol(self, ctx):
-        """Asks the @1337 group if they want to play LoL."""
-        darab = ctx.message.content.split()
-        darab_command_nelkul = darab[1:]
-        kiirashoz = " ".join(darab_command_nelkul)
-        await ctx.message.delete()
-        if len(darab) >= 2:
-            await ctx.send(f"<@&444159433421881355> lol {kiirashoz} ?")
-        else:
-            await ctx.send("<@&444159433421881355> valaki lol?")
-
     @commands.command(aliases=["cointoss", "headsortails", "érme", "coinflip", "pénzfeldobás"])
     async def coin(self, ctx):
         """Simulates a coin toss."""
         fejvagyiras = random.randint(0, 1)
         cointoss_array = ["fej", "írás"]
         await ctx.send(f"{cointoss_array[fejvagyiras]}")
-
-    # TODO: nem kell
-    @commands.command(aliases=["gn", "goodnight", "goodbye", "szia"])
-    async def bye(self, ctx):
-        """This will send a goodbye message for you so you don't have to type that much."""
-        rnd_bye_msg = random.randint(1, 5)
-        if rnd_bye_msg == 1:
-            await ctx.send(f"{ctx.author.mention} is now leaving.:cry: Come back soon!")
-        elif rnd_bye_msg == 2:
-            await ctx.send(f"Our buddy {ctx.author.mention} is going to be offline for some time. "
-                           "Say goodbye! :wave:")
-        elif rnd_bye_msg == 3:
-            await ctx.send(f"{ctx.author.mention} cannot stand us anymore. He is leaving now.")
-        elif rnd_bye_msg == 4:
-            await ctx.send(f"{ctx.author.mention} has something better to do. He is taking off.")
-        else:
-            await ctx.send(f"Unfortunately {ctx.author.mention} has got to go. What a shame! "
-                           ":smirk: :upside_down:")
-
-    # TODO: nem kell
-    @commands.command()
-    async def created(self, ctx):
-        """Returns when a Discord ID was created."""
-        try:
-            vizsgalt_id = int(ctx.message.content[9:26])
-            letrehozva = discord.utils.snowflake_time(vizsgalt_id)
-            await ctx.send(f"{letrehozva}")
-        except Exception as error:
-            await ctx.send(f"Error. Did you enter a DiscordID? ({error})")
 
     @commands.command()
     async def google(self, ctx):

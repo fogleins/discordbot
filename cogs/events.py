@@ -37,16 +37,6 @@ class Events(commands.Cog):
         embed.add_field(name="Hey,", value="<@358992693453652000> you need to see this!")
         await self.bot.get_channel(550724640469942285).send(embed=embed)
 
-    # TODO: nem kell
-    @commands.Cog.listener()
-    async def on_member_update(self, before, after):
-        if (before.id == after.id) and (after.id == 552216488803827713):
-            if (str(before.status) == "online") and (str(after.status) == "offline"):
-                await self.bot.get_channel(549709362206081076).send("Hey <@358992693453652000>, "
-                                                                    f"we need you! {after.name} is not under control!")
-            elif (str(before.status) == "offline") and (str(after.status) == "online"):
-                await self.bot.get_channel(549709362206081076).send("<@358992693453652000> I'm being watched. :eyes:")
-
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
         now = datetime.datetime.now()

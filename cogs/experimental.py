@@ -75,22 +75,6 @@ class Experimental(commands.Cog, name="Experimental"):
         else:
             await ctx.send("This command is admin-only.")
 
-    # TODO: nem kell
-    @commands.command(hidden=True)
-    # ahhoz, hogy más szerveren lévő user egyes adatait (pl. 
-    # a jelenlegi voice channel nevét, a szerver nevét megkapjuk
-    # member helyett user-ként kellene kezelni, de ezeknek nincsenek
-    # ilyen attribútumai (pl. user.status, user.voice), így ennek a 
-    # parancsnak nem igazán van így értelme)
-    # async def tesztusrinfo(self, ctx, member: discord.User): #ez így nem működik
-    # helyes megoldás lenne:
-    async def tesztusrinfo(self, ctx, member: discord.Member):
-        try:
-            await ctx.send(f"Name: {member.name}; Status: {member.status}; "
-                           f"Connected to: {member.voice.channel.name} on {member.voice.channel.guild.name}")
-        except Exception as e:
-            await ctx.send(f"Error: {e}")
-
     # tesztelésre vár + képeket be kell szerezni
     @commands.command(aliases=["Kóka", "kóka"])
     async def koka(self, ctx):
@@ -99,27 +83,6 @@ class Experimental(commands.Cog, name="Experimental"):
         kep = discord.File(fp=f"/srv/shared/Simi/programozas/discordbot/rwLive/cogs/koka{rnd}.jpg")
         await ctx.message.delete()
         await ctx.send(file=kep)
-
-    # TODO: nem kell
-    @commands.command()
-    async def playthis(self, ctx, *, url):
-        """Plays your most played songs/playlists. (Under testing, might be buggy)"""
-        message = ctx.message
-        teljes_uzenet_splitelve = ctx.message.content.split()
-        link = teljes_uzenet_splitelve[len(teljes_uzenet_splitelve) - 1]
-        music_bot_channel_id = 443844561270341633
-        await self.bot.get_channel(music_bot_channel_id).send(f"!play {link}")
-        await message.delete()
-
-    # TODO: nem kell
-    # ugyanaz, mint a spotiplay-nél
-    @commands.command(aliases=["kutyafül"])
-    async def kokalista(self, ctx):
-        """Kóka úr kedvelt YT videóit tartalmazó playlistet kezdi lejátszani"""
-        lista_url = "https://www.youtube.com/playlist?list=LLaPUXOjl02GaQKAtRi1KnxQ"
-        message = ctx.message
-        await self.bot.get_channel(443844561270341633).send(f"!play {lista_url}")
-        await message.delete()
 
     # THIS FUNCTION IS YET TO BE TESTED!
     # gyakorlatilag mehet commands.py-ba
@@ -198,24 +161,6 @@ class Experimental(commands.Cog, name="Experimental"):
                 await ctx.send("You aren't allowed to change the channel's settings.")
         except Exception as e:
             print(f"Error in function 'changelimit'. [{e}]")
-
-    # TODO: nem kell
-    # mivel a music botok nem játszák le amit másik bot kér, ezért csak shortcutnak jó
-    @commands.command(aliases=["splay"])
-    async def spotiplay(self, ctx):
-        """Sends a play command with the song to which the requester is currently listening to."""
-        try:
-            member = ctx.author
-            if member.activity:
-                if member.activity.name == "Spotify":
-                    spotify = member.activity
-                    await ctx.send(f"!play {spotify.title} by {spotify.artist}", delete_after=30)
-                else:
-                    await ctx.send("No Spotify listening activity detected.", delete_after=5)
-            else:
-                await ctx.send("No Spotify listening activity detected.", delete_after=5)
-        except Exception as err:
-            await ctx.send(f"Error: {err}")
 
     # gyakorlatilag mehet commands.py-ba
     @commands.command()
