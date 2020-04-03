@@ -1,6 +1,12 @@
-import datetime
 import discord
 from discord.ext import commands
+
+
+async def is_admin(ctx):
+    """Checks whether the user who called an admin-only command has rights to run these commands"""
+    admins = [358992693453652000]  # the Discord IDs of people who may run Admin-only commands
+    return ctx.author.id in admins
+
 
 class AdminOnly(commands.Cog):
 
@@ -8,75 +14,54 @@ class AdminOnly(commands.Cog):
         self.bot = bot
 
     @commands.command()
+    @commands.check(is_admin)
     async def status(self, ctx):
-        "Changes the bot's status. Syntax: ?status type[str] status-to-show[str]" #play listen
-        if ctx.message.author.id == 358992693453652000:
+        """Changes the bot's status. Syntax: ?status type[str] status-to-show[str]"""  # play listen
+        successful = True
+        try:
             if len(ctx.message.content) == 7:
-                await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='commands || ?help'))
-                message = 'Status updated. :white_check_mark:'
-                await ctx.send('{}'.format(message))
+                await self.bot.change_presence(activity=discord.Activity(
+                    type=discord.ActivityType.listening, name="commands || ?help"))
+                await ctx.send("Status updated. :white_check_mark:")
             elif len(ctx.message.content) >= 8:
                 if "play" in ctx.message.content:
-                    try:
-                        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.playing, name=ctx.message.content[13:]))
-                        message = 'Status updated. :white_check_mark:'
-                        await ctx.send('{}'.format(message))
-                    except Exception:
-                        await ctx.send("Status change failed. :x: ")
+                    await self.bot.change_presence(activity=discord.Activity(
+                        type=discord.ActivityType.playing, name=ctx.message.content[13:]))
                 elif "listen" in ctx.message.content:
-                    try:
-                        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name=ctx.message.content[15:]))
-                        message = 'Status updated. :white_check_mark:'
-                        await ctx.send('{}'.format(message))
-                    except Exception:
-                        await ctx.send("Status change failed. :x: ")
+                    await self.bot.change_presence(activity=discord.Activity(
+                        type=discord.ActivityType.listening, name=ctx.message.content[15:]))
                 elif "watch" in ctx.message.content:
-                    try:
-                        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name=ctx.message.content[14:]))
-                        message = 'Status updated. :white_check_mark:'
-                        await ctx.send('{}'.format(message))
-                    except Exception:
-                        await ctx.send("Status change failed. :x: ")
+                    await self.bot.change_presence(activity=discord.Activity(
+                        type=discord.ActivityType.watching, name=ctx.message.content[14:]))
                 elif "stream" in ctx.message.content:
-                    try:
-                        await self.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.streaming, name=ctx.message.content[15:]))
-                        message = 'Status updated. :white_check_mark:'
-                        await ctx.send('{}'.format(message))
-                    except Exception:
-                        await ctx.send("Status change failed. :x: ")
+                    await self.bot.change_presence(activity=discord.Activity(
+                        type=discord.ActivityType.streaming, name=ctx.message.content[15:]))
                 else:
-                    await ctx.send("Wrong syntax.")
+                    await ctx.send("Wrong syntax. See ``?help status`` for details.")
+                    successful = False
+                if successful:
+                    await ctx.send("Status updated. :white_check_mark:")
             else:
-                await ctx.send('Error')
-        else:
-            await ctx.send("You don't have permission(s) to do that. :no_entry:")
+                await ctx.send("Wrong syntax. See ``?help status`` for details.")
+        except Exception as err:
+            try:
+                await ctx.send(f"Couldn't update the status. [{err}]")
+            except Exception as err:
+                print(f"Couldn't send error message from command 'status'. [{err}]")
 
     @commands.command()
-    async def say(self, ctx):
-        'Sends a message. Syntax: ?say channelID message_content'
-        if ctx.message.author.id == 358992693453652000:
-            content = ctx.message.content.split()
-            try:
-                channel = int(content[1])
-            except Exception:
-                await ctx.say("Error: Cannot convert str to int.")
-            content_word_count = len(content)
-            meddig = content_word_count
-            kiirando_uzenet = ' ' + content[2]
-            for x in range(3, meddig):
-                kiirando_uzenet += ' ' + content[x]
-            await self.bot.get_channel(channel).send('{}'.format(kiirando_uzenet))
-        else:
-            await ctx.send('This is an admin-only command.')
+    @commands.check(is_admin)
+    async def say(self, channel: discord.TextChannel, *args):
+        """Sends a message. Syntax: ?say channel_mention message_content"""
+        await self.bot.get_channel(channel).send(f"{' '.join(args)}")
     
-    #version info
+    # version info
     @commands.command()
+    @commands.check(is_admin)
     async def version(self, ctx):
         """Prints the current discord.py version. Admin-only."""
-        if ctx.message.author.id == 358992693453652000:
-            await ctx.send("Discord.py version info: {} ({})".format(discord.__version__, discord.version_info[3]))
-        else:
-            await ctx.send("Access forbidden :no_entry:")
+        await ctx.send(f"Discord.py version {discord.__version__} ({discord.version_info[3]})")
+
 
 def setup(bot):
     bot.add_cog(AdminOnly(bot))
