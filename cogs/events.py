@@ -52,7 +52,6 @@ class Events(commands.Cog):
             embed.set_author(name=f"{after.author.name} has edited a message", icon_url=after.author.avatar_url)
             await self.bot.get_channel(550724640469942285).send(embed=embed)
 
-    # TODO: exception handling
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         now = datetime.datetime.now()
@@ -122,64 +121,86 @@ class Events(commands.Cog):
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        try:
-            # ezt azért raktam ide, mert az id vizsgálatánál egyes esetekben errort ad
-            # pl: on_voice_state_update error: 'NoneType' object has no attribute 'guild'
-            if not member.bot:
-                now = datetime.datetime.now()
-                kiirhato = True
-                nem_mute_az_event_oka = (bool((before.deaf == after.deaf) and (before.mute == after.mute)
-                                              and (before.self_deaf == after.self_deaf)
-                                              and (before.self_mute == after.self_mute)
-                                              and (member.id != 549654750585421825)))
-                if ((before.channel is None) and (after.channel.guild.id == 399595937409925140)
-                        and (before.deaf == after.deaf) and (before.mute == after.mute)
-                        and (before.self_deaf == after.self_deaf) and (before.self_mute == after.self_mute)
-                        and (member.id != 549654750585421825)):
-                    uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
-                elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
-                        and nem_mute_az_event_oka):
-                    uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}**"
-                elif ((before.channel.guild.id != 399595937409925140) and
-                        (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
-                    uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
-                elif ((before.channel.guild.id == 399595937409925140) and
-                        (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
-                    uzenet = f"**{member.name}** has moved from **{before.channel.name}** to **{after.channel.name}**"
-                else:
-                    uzenet = None
-                    kiirhato = False
-                if kiirhato:
-                    embed = discord.Embed(
-                        title=f"``{now}:``",
-                        description=f"{uzenet}",
-                        colour=discord.Colour.blue()
-                    )
-                    embed.set_thumbnail(url=member.avatar_url)
-                    embed.set_author(name=f"{member.name} has updated their VoiceState", icon_url=member.avatar_url)
-                    await self.bot.get_channel(550724640469942285).send(embed=embed)
-        except Exception as e:
-            await self.bot.get_channel(550724640469942285).send(f"on_voice_state_update error: {e}")
+        # ezt azért raktam ide, mert az id vizsgálatánál egyes esetekben errort ad
+        # pl: on_voice_state_update error: 'NoneType' object has no attribute 'guild'
+        if not member.bot:
+            now = datetime.datetime.now()
+            kiirhato = True
+            nem_mute_az_event_oka = (bool((before.deaf == after.deaf) and (before.mute == after.mute)
+                                          and (before.self_deaf == after.self_deaf)
+                                          and (before.self_mute == after.self_mute)
+                                          and (member.id != 549654750585421825)))
+            if ((before.channel is None) and (after.channel.guild.id == 399595937409925140)
+                    and (before.deaf == after.deaf) and (before.mute == after.mute)
+                    and (before.self_deaf == after.self_deaf) and (before.self_mute == after.self_mute)
+                    and (member.id != 549654750585421825)):
+                uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+            elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
+                    and nem_mute_az_event_oka):
+                uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}**"
+            elif ((before.channel.guild.id != 399595937409925140) and
+                    (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+            elif ((before.channel.guild.id == 399595937409925140) and
+                    (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                uzenet = f"**{member.name}** has moved from **{before.channel.name}** to **{after.channel.name}**"
+            else:
+                uzenet = None
+                kiirhato = False
+            if kiirhato:
+                embed = discord.Embed(
+                    title=f"``{now}:``",
+                    description=f"{uzenet}",
+                    colour=discord.Colour.blue()
+                )
+                embed.set_thumbnail(url=member.avatar_url)
+                embed.set_author(name=f"{member.name} has updated their VoiceState", icon_url=member.avatar_url)
+                await self.bot.get_channel(550724640469942285).send(embed=embed)
 
     # TODO: command error vs on_error?
-    # does work
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        # derived from discord.ext.commands.CommandError
+        if isinstance(error, discord.ext.commands.CommandNotFound):
+            err = "A beírt parancs nem létezik."
+        elif isinstance(error, discord.ext.commands.TooManyArguments):
+            err = "Túl sok paramétert adtál meg."
+        elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
+            err = "Nem adtál meg minden szükséges paramétert."
+        elif isinstance(error, discord.ext.commands.BadArgument):
+            err = "Nem megfelelő paramétereket adtál meg."
+        elif isinstance(error, discord.ext.commands.UserInputError):
+            err = "Nem jól adtad meg a parancsot."
+        elif isinstance(error, discord.ext.commands.CheckFailure):
+            err = "Hiba a jogosultságok ellenőrzése során."
+        elif isinstance(error, discord.ext.commands.CommandInvokeError):
+            err = "Hiba a meghívott parancsban."
+        elif isinstance(error, discord.ext.commands.CommandError):
+            err = "Ismeretlen hiba a parancs futtatása során."
+        # derived from discord.ext.commands.ExtensionError
+        elif isinstance(error, discord.ext.commands.ExtensionNotFound):
+            err = "A modul nem található."
+        elif isinstance(error, discord.ext.commands.ExtensionAlreadyLoaded):
+            err = "A betölteni kívánt modul már be van töltve."
+        elif isinstance(error, discord.ext.commands.ExtensionNotLoaded):
+            err = "A használni kívánt modul nincs betöltve."
+        elif isinstance(error, discord.ext.commands.NoEntryPointError):
+            err = "A betölteni kívánt modul nem rendelkezik 'setup' függvénnyel."
+        # any other error is highly unlikely, but this should be able to handle them in case it's needed
+        else:
+            err = "Ismeretlen hiba."
         now = datetime.datetime.now()
-        try:
-            embed = discord.Embed(
-                title=f"``{now}:`` ",
-                description=f":interrobang: Command error: {error}",
-                colour=discord.Colour.from_rgb(255, 0, 13)
-            )
-            embed.set_thumbnail(url=ctx.message.author.avatar_url)
-            embed.set_author(name="Command error",
-                             icon_url="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter"
-                                      "/185/cross-mark_274c.png")
-            await ctx.send(embed=embed)
-        except Exception as e:
-            print("Command error. I wasn't able to send an error message to the Discord channel in which"
-                  f"I've encountered the error. ({e})")
+        embed = discord.Embed(
+            title=f"``{now}:`` ",
+            description=f":interrobang: {err}",
+            colour=discord.Colour.from_rgb(255, 0, 13)
+        )
+        embed.set_thumbnail(url=ctx.message.author.avatar_url)
+        embed.set_author(name="Command error",
+                         icon_url="https://emojipedia-us.s3.dualstack.us-west-1.amazonaws.com/thumbs/120/twitter"
+                                  "/185/cross-mark_274c.png")
+        embed.add_field(name="Error message:", value=f"{error}", inline=True)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

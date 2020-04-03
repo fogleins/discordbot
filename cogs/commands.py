@@ -26,17 +26,15 @@ class Commands(commands.Cog):
     @commands.command(aliases=["delete", "del", "c", "clear", "purge"])
     # amount a törlendő üzenetek száma 
     # (3 a minimum, mert magát a commandot és legalább az utolsó 2 másik üzenetet töröljük)
-    async def bulkdel(self, ctx, amount=3):
+    async def bulkdel(self, ctx, amount: int = 2):
         """Updated version of ?clear. Deletes a given amount of messages, default is last 2 messages."""
-        try:
-            channel = ctx.message.channel
-            if int(amount) >= 20:
-                await ctx.send("``Nice try Tici`` :upside_down:", delete_after=15)
-            else:
-                deleted = await channel.purge(limit=int(amount), bulk=True)
-                await ctx.send(f"Deleted {len(deleted)} messages. :sparkles: :broom:", delete_after=5)
-        except Exception as error:
-            await ctx.send(f"Couldn't delete messages. ({error})")
+        channel = ctx.message.channel
+        amount = amount + 1  # the command counts as a message too, so if we'd like to del the last 3, we should del 4
+        if (amount > 5) and (not ctx.author.is_owner):
+            await ctx.send("``Nice try Tici`` :upside_down:", delete_after=15)
+        else:
+            deleted = await channel.purge(limit=int(amount), bulk=True)
+            await ctx.send(f"Deleted {len(deleted)} messages. :sparkles: :broom:", delete_after=5)
 
     @commands.command()
     async def csgomaps(self, ctx, amount=1):
@@ -96,6 +94,10 @@ class Commands(commands.Cog):
             user_voice_state = f"Currently connected to channel {member.voice.channel.name}"
         else:
             user_voice_state = f"{member.name} is currently not connected to any voice channels."
+        if member.activity:
+            activity = member.activity.name
+        else:
+            activity = member.activity
 
         embed = discord.Embed(
             title=f"``{member.name}:``",
@@ -110,7 +112,7 @@ class Commands(commands.Cog):
         embed.add_field(name="ID:", value=f"{member.id}", inline=True)
         embed.add_field(name="Bot:", value=f"{str(member.bot)}", inline=True)
         embed.add_field(name="Status:", value=f"{member.status}", inline=True)
-        embed.add_field(name="Activity:", value=f"{member.activity}", inline=True)  # may need to be converted to str
+        embed.add_field(name="Activity:", value=f"{activity}", inline=True)
         embed.add_field(name="VoiceState:", value=f"{user_voice_state}", inline=False)
         await ctx.message.delete()
         await self.bot.get_channel(ctx.channel.id).send(embed=embed)
@@ -132,14 +134,11 @@ class Commands(commands.Cog):
         minimum_role = discord.utils.get(ctx.guild.roles, name="Balaton Squad")
         top_role = member.top_role
         if minimum_role <= top_role:
-            try:
-                await member.add_roles(role_to_add)
-                await ctx.message.delete()
-                await self.bot.get_channel(549709362206081076).send(f"{ctx.guild.owner.mention} {member.name} has "
-                                                                    "access to nsfw from now on.")
-                await ctx.send(f"Hey {ctx.message.author.mention}, access granted!")
-            except Exception as error:
-                await ctx.send(f"Something went wrong. :( ({error})")
+            await member.add_roles(role_to_add)
+            await ctx.message.delete()
+            await self.bot.get_channel(549709362206081076).send(f"{ctx.guild.owner.mention} {member.name} has "
+                                                                "access to nsfw from now on.")
+            await ctx.send(f"Hey {ctx.message.author.mention}, access granted!")
         else:
             await ctx.send("You don't have a high enough role to do that. :no_entry:")
 

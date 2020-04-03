@@ -18,45 +18,40 @@ class AdminOnly(commands.Cog):
     async def status(self, ctx):
         """Changes the bot's status. Syntax: ?status type[str] status-to-show[str]"""  # play listen
         successful = True
-        try:
-            if len(ctx.message.content) == 7:
+        if len(ctx.message.content) == 7:
+            await self.bot.change_presence(activity=discord.Activity(
+                type=discord.ActivityType.listening, name="commands || ?help"))
+            await ctx.send("Status updated. :white_check_mark:")
+        elif len(ctx.message.content) >= 8:
+            if "play" in ctx.message.content:
                 await self.bot.change_presence(activity=discord.Activity(
-                    type=discord.ActivityType.listening, name="commands || ?help"))
-                await ctx.send("Status updated. :white_check_mark:")
-            elif len(ctx.message.content) >= 8:
-                if "play" in ctx.message.content:
-                    await self.bot.change_presence(activity=discord.Activity(
-                        type=discord.ActivityType.playing, name=ctx.message.content[13:]))
-                elif "listen" in ctx.message.content:
-                    await self.bot.change_presence(activity=discord.Activity(
-                        type=discord.ActivityType.listening, name=ctx.message.content[15:]))
-                elif "watch" in ctx.message.content:
-                    await self.bot.change_presence(activity=discord.Activity(
-                        type=discord.ActivityType.watching, name=ctx.message.content[14:]))
-                elif "stream" in ctx.message.content:
-                    await self.bot.change_presence(activity=discord.Activity(
-                        type=discord.ActivityType.streaming, name=ctx.message.content[15:]))
-                else:
-                    await ctx.send("Wrong syntax. See ``?help status`` for details.")
-                    successful = False
-                if successful:
-                    await ctx.send("Status updated. :white_check_mark:")
+                    type=discord.ActivityType.playing, name=ctx.message.content[13:]))
+            elif "listen" in ctx.message.content:
+                await self.bot.change_presence(activity=discord.Activity(
+                    type=discord.ActivityType.listening, name=ctx.message.content[15:]))
+            elif "watch" in ctx.message.content:
+                await self.bot.change_presence(activity=discord.Activity(
+                    type=discord.ActivityType.watching, name=ctx.message.content[14:]))
+            elif "stream" in ctx.message.content:
+                await self.bot.change_presence(activity=discord.Activity(
+                    type=discord.ActivityType.streaming, name=ctx.message.content[15:]))
             else:
                 await ctx.send("Wrong syntax. See ``?help status`` for details.")
-        except Exception as err:
-            try:
-                await ctx.send(f"Couldn't update the status. [{err}]")
-            except Exception as err:
-                print(f"Couldn't send error message from command 'status'. [{err}]")
+                successful = False
+            if successful:
+                await ctx.send("Status updated. :white_check_mark:")
+        else:
+            await ctx.send("Wrong syntax. See ``?help status`` for details.")
 
-    @commands.command()
+    # TODO
+    @commands.command(aliases=["send"])
     @commands.check(is_admin)
-    async def say(self, channel: discord.TextChannel, *args):
+    async def say(self, ctx, channel: discord.TextChannel, *args):  # ctx is needed even if its not used
         """Sends a message. Syntax: ?say channel_mention message_content"""
-        await self.bot.get_channel(channel).send(f"{' '.join(args)}")
+        await self.bot.get_channel(channel.id).send(f"{' '.join(args)}")
     
     # version info
-    @commands.command()
+    @commands.command(aliases=["v"])
     @commands.check(is_admin)
     async def version(self, ctx):
         """Prints the current discord.py version. Admin-only."""

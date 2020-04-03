@@ -17,17 +17,11 @@ class BalatonSquad(commands.Cog):
         must_have_role = discord.utils.get(member.guild.roles, name="newcomer")
         assigned_roles = ctx.author.roles
         if must_have_role in assigned_roles:
-            try:
-                await member.add_roles(role_to_add)
-                await ctx.message.delete()
-                await self.bot.get_channel(549709362206081076).send(f"<@358992693453652000> {member.name} "
-                                                                    "is now part of Balaton Squad!")
-                await ctx.send(f"Hey, {ctx.message.author.mention} you're part of Balaton Squad from now on!")
-            except discord.DiscordException as discord_error:
-                await ctx.send("Discord error: role couldn't be assigned. "
-                               f"You may already have access to the channel. Error message: {discord_error}")
-            except Exception as error:
-                print(f"Error while trying to assign the 'Balaton Squad role to {member.name}. ({error})")
+            await member.add_roles(role_to_add)
+            await ctx.message.delete()
+            await self.bot.get_channel(549709362206081076).send(f"<@358992693453652000> {member.name} "
+                                                                "is now part of Balaton Squad!")
+            await ctx.send(f"Hey, {ctx.message.author.mention} you're part of Balaton Squad from now on!")
         else:
             await ctx.send(f"You don't have permission to be a member of Balaton Squad. "
                            f"Contact {guild.owner.name} if you want to gain access.")

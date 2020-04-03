@@ -11,6 +11,7 @@ class Experimental(commands.Cog, name="Experimental"):
     def __init__(self, bot):
         self.bot = bot
 
+    # TODO: is this needed when we have on_command_error?
     @commands.Cog.listener()
     async def on_error(self, event):
         now = datetime.datetime.now()
@@ -20,19 +21,15 @@ class Experimental(commands.Cog, name="Experimental"):
                 description=f":interrobang: Non-command error: {event} raised an exception:",
                 colour=discord.Colour.from_rgb(255, 0, 13)
             )
-            embed.set_thumbnail(url="https://images-ext-1.discordapp.net/external/URc4P573HFyaYe6vysVJ5GDeG4yf675sa"
-                                    "-vT9IjYMao/%\3Fsize%3D1024/https/cdn.discordapp.com/icons/399595937409925140"
-                                    "/b80c7368fbb679d750c7c0809295a555.webp")
-            embed.set_author(name="Non-command error", icon_url="https://emojipedia-us.s3.dualstack.us-west-1"
-                                                                ".amazonaws.com/thumbs/120/twitter/185/cross"
-                                                                "-mark_274c.png")
+            embed.set_thumbnail(url=f"{event.guild.icon.url}")  # TODO: does this return the guild icon?
+            embed.set_author(name="Non-command error", icon_url=f"{event.guild.icon.url}")  # TODO: itt is
             await self.bot.get_channel(550724640469942285).send(embed=embed)
         except Exception as e:
             print(f"Non-command error. Couldn't send an error message to the logs channel. ({e})")
 
     @commands.group(name="Emojis", aliases=["e", "emote", "emotes"])
     async def emoji(self, ctx):
-        await ctx.send("A command group for custom ascii emojis.")
+        """A command group for custom ascii emojis."""
 
     @emoji.command(aliases=["s"])
     async def shrug(self, ctx):
@@ -42,7 +39,7 @@ class Experimental(commands.Cog, name="Experimental"):
     @emoji.command(aliases=["tf"])
     async def tableflip(self, ctx):
         await ctx.message.delete()
-        await ctx.send("\\tableflip")
+        await ctx.send("(╯°□°）╯︵ ┻━┻")
 
     @emoji.command(aliases=["uf"])
     async def unflip(self, ctx):
@@ -59,6 +56,7 @@ class Experimental(commands.Cog, name="Experimental"):
         await ctx.message.delete()
         await ctx.send("{\\\_\/}\n(●\_●)\n( >🌮 Want a taco?")
 
+    # TODO: this command should be revised
     @commands.command(aliases=["remind"])
     async def reminder(self, ctx, time, title):
         """Admin-only. Sets a reminder. Syntax: ?remind time[int, in seconds] title[str, between ""]"""
@@ -100,67 +98,64 @@ class Experimental(commands.Cog, name="Experimental"):
             time_interval: float
                 The number of minutes until the limit will reset to unlimited, default is 120
         """
-        try:
-            now = datetime.datetime.now()
-            if time_length is None:
-                time_length = 120  # zh-k miatt inkább 2 órára lett növelve
-            elif time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
-                await ctx.send(":x: Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
+        now = datetime.datetime.now()
+        if time_length is None:
+            time_length = 120  # zh-k miatt inkább 2 órára lett növelve
+        elif time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
+            await ctx.send(":x: Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
+            return
+        elif time_length - 9 < 1:  # A warning message is sent 5 minutes before the end of the reservation
+            await ctx.send(":x: Minimum 10 percre kell foglalnod.")
+            return
+
+        time_length = math.ceil(time_length * 60)  # converting minutes to seconds
+        requester = ctx.author
+        guild = ctx.message.guild
+        channel_to_edit = discord.utils.get(guild.voice_channels, name="Itt-nem-zavar-a-Szédületes")
+        minimum_role = discord.utils.get(ctx.guild.roles, name="Balaton Squad")
+        top_role = requester.top_role
+        await ctx.message.delete()
+
+        if top_role >= minimum_role:
+            if (limit > 0) and (limit < 99):
+                await channel_to_edit.edit(user_limit=limit)
+                await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
+                               f"{round((time_length / 60), 2)} minutes.", delete_after=30)
+                # --- EMBED IS BEING SENT TO #LOGS ---
+                embed = discord.Embed(
+                    title=f"``{now}:``",
+                    description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
+                                f"to {limit} for {round((time_length / 60), 2)} minutes.",
+                    colour=discord.Colour.magenta()
+                )
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
+                await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
+                # --- END OF EMBED ---
+
+                await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
+                await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
+                await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
+                await channel_to_edit.edit(user_limit=0)
+                await ctx.send("User limit has been set to unlimited.", delete_after=10)
+            elif (limit < 0) or (limit > 99):
+                await ctx.send(":x: Limit must be between 1 and 99.", delete_after=30)
                 return
-            elif time_length - 9 < 1:  # A warning message is sent 5 minutes before the end of the reservation
-                await ctx.send(":x: Minimum 10 percre kell foglalnod.")
-                return
-
-            time_length = math.ceil(time_length * 60)  # converting minutes to seconds
-            requester = ctx.author
-            guild = ctx.message.guild
-            channel_to_edit = discord.utils.get(guild.voice_channels, name="Itt-nem-zavar-a-Szédületes")
-            minimum_role = discord.utils.get(ctx.guild.roles, name="Balaton Squad")
-            top_role = requester.top_role
-            await ctx.message.delete()
-
-            if top_role >= minimum_role:
-                if (limit > 0) and (limit < 99):
-                    await channel_to_edit.edit(user_limit=limit)
-                    await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
-                                   f"{time_length / 60} minutes.", delete_after=30)
-                    # --- EMBED IS BEING SENT TO #LOGS ---
-                    embed = discord.Embed(
-                        title=f"``{now}:``",
-                        description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
-                                    f"to {limit} for {time_length} minutes.",
-                        colour=discord.Colour.magenta()
-                    )
-                    embed.set_thumbnail(url=ctx.author.avatar_url)
-                    embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-                    await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
-                    # --- END OF EMBED ---
-
-                    await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
-                    await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
-                    await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
-                    await channel_to_edit.edit(user_limit=0)
-                    await ctx.send("User limit has been set to unlimited.", delete_after=10)
-                elif (limit < 0) or (limit > 99):
-                    await ctx.send(":x: Limit must be between 1 and 99.", delete_after=30)
-                    return
-                elif limit == 0:
-                    await channel_to_edit.edit(user_limit=limit)
-                    embed = discord.Embed(
-                        title=f"``{now}:``",
-                        description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} "
-                                    "to unlimited",
-                        colour=discord.Colour.magenta()
-                    )
-                    embed.set_thumbnail(url=ctx.author.avatar_url)
-                    embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-                    await ctx.send(embed=embed)
-                    await asyncio.sleep(1)
-                    await self.bot.get_channel(550724640469942285).send(embed=embed)
-            else:
-                await ctx.send("You aren't allowed to change the channel's settings.")
-        except Exception as e:
-            print(f"Error in function 'changelimit'. [{e}]")
+            elif limit == 0:
+                await channel_to_edit.edit(user_limit=limit)
+                embed = discord.Embed(
+                    title=f"``{now}:``",
+                    description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} "
+                                "to unlimited",
+                    colour=discord.Colour.magenta()
+                )
+                embed.set_thumbnail(url=ctx.author.avatar_url)
+                embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
+                await ctx.send(embed=embed)
+                await asyncio.sleep(1)
+                await self.bot.get_channel(550724640469942285).send(embed=embed)
+        else:
+            await ctx.send("You aren't allowed to change the channel's settings.")
 
     # gyakorlatilag mehet commands.py-ba
     @commands.command()
@@ -182,16 +177,13 @@ class Experimental(commands.Cog, name="Experimental"):
     # sub role automatikus hozzáadása
     @commands.command(hidden=True)
     async def sub(self, ctx):
-        try:
-            sub_role = discord.utils.get(ctx.guild.roles, name="sub")
-            member = ctx.author
-            await member.add_roles(sub_role)
-            await ctx.message.delete()
-            await self.bot.get_channel(549709362206081076).send("<@358992693453652000> "
-                                                                f"sub role has been assigned to {member.name}.")
-            await ctx.send(f"Hey {member.mention}, access granted!")
-        except Exception as error:
-            await ctx.send(f"Something went wrong. :( ({error})")
+        sub_role = discord.utils.get(ctx.guild.roles, name="sub")
+        member = ctx.author
+        await member.add_roles(sub_role)
+        await ctx.message.delete()
+        await self.bot.get_channel(549709362206081076).send("<@358992693453652000> "
+                                                            f"sub role has been assigned to {member.name}.")
+        await ctx.send(f"Hey {member.mention}, access granted!")
 
 
 def setup(bot):
