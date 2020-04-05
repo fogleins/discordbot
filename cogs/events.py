@@ -160,8 +160,17 @@ class Events(commands.Cog):
     # TODO: command error vs on_error?
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
+        # derived from discord.ext.commands.ExtensionError
+        if isinstance(error, discord.ext.commands.ExtensionNotFound):
+            err = "A modul nem található."
+        elif isinstance(error, discord.ext.commands.ExtensionAlreadyLoaded):
+            err = "A betölteni kívánt modul már be van töltve."
+        elif isinstance(error, discord.ext.commands.ExtensionNotLoaded):
+            err = "A használni kívánt modul nincs betöltve."
+        elif isinstance(error, discord.ext.commands.NoEntryPointError):
+            err = "A betölteni kívánt modul nem rendelkezik 'setup' függvénnyel."
         # derived from discord.ext.commands.CommandError
-        if isinstance(error, discord.ext.commands.CommandNotFound):
+        elif isinstance(error, discord.ext.commands.CommandNotFound):
             err = "A beírt parancs nem létezik."
         elif isinstance(error, discord.ext.commands.TooManyArguments):
             err = "Túl sok paramétert adtál meg."
@@ -177,15 +186,6 @@ class Events(commands.Cog):
             err = "Hiba a meghívott parancsban."
         elif isinstance(error, discord.ext.commands.CommandError):
             err = "Ismeretlen hiba a parancs futtatása során."
-        # derived from discord.ext.commands.ExtensionError
-        elif isinstance(error, discord.ext.commands.ExtensionNotFound):
-            err = "A modul nem található."
-        elif isinstance(error, discord.ext.commands.ExtensionAlreadyLoaded):
-            err = "A betölteni kívánt modul már be van töltve."
-        elif isinstance(error, discord.ext.commands.ExtensionNotLoaded):
-            err = "A használni kívánt modul nincs betöltve."
-        elif isinstance(error, discord.ext.commands.NoEntryPointError):
-            err = "A betölteni kívánt modul nem rendelkezik 'setup' függvénnyel."
         # any other error is highly unlikely, but this should be able to handle them in case it's needed
         else:
             err = "Ismeretlen hiba."

@@ -94,7 +94,7 @@ def get_human_readable_uptime_diff(start_time):
     return fmt.format(d=days, h=hours, m=minutes, s=seconds)
 
 
-# TODO: when check fails, catch the CheckFailure exception
+# TODO: raise exception if extension is already loaded
 @bot.command(aliases=["l"])
 @commands.check(is_admin)
 async def load(ctx, extension):

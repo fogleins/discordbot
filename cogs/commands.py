@@ -30,7 +30,7 @@ class Commands(commands.Cog):
         """Updated version of ?clear. Deletes a given amount of messages, default is last 2 messages."""
         channel = ctx.message.channel
         amount = amount + 1  # the command counts as a message too, so if we'd like to del the last 3, we should del 4
-        if (amount > 5) and (not ctx.author.is_owner):
+        if (amount > 5) and (not self.bot.is_owner(ctx.author)):
             await ctx.send("``Nice try Tici`` :upside_down:", delete_after=15)
         else:
             deleted = await channel.purge(limit=int(amount), bulk=True)
@@ -40,24 +40,27 @@ class Commands(commands.Cog):
     async def csgomaps(self, ctx, amount=1):
         """Prints a given number of random CS:GO maps' name. Default is one map. Syntax: ?csgomaps number[int]"""
         meddig = int(amount)
-        for x in range(0, meddig):
-            mapok = [
-                "Dust 2",
-                "Mirage",
-                "Inferno",
-                "Office",
-                "Cache",
-                "Nuke",
-                "Train",
-                "Vertigo",
-                "Overpass",
-                "Chlorine",
-                "Anubis",
-                "Agency"
-            ]
-            map_id = random.randint(0, len(mapok) - 1)
-            await ctx.send(f"{mapok[map_id]}")
-            await asyncio.sleep(0.05)
+        if meddig <= 10:
+            for x in range(0, meddig):
+                mapok = [
+                    "Dust 2",
+                    "Mirage",
+                    "Inferno",
+                    "Office",
+                    "Cache",
+                    "Nuke",
+                    "Train",
+                    "Vertigo",
+                    "Overpass",
+                    "Chlorine",
+                    "Anubis",
+                    "Agency"
+                ]
+                map_id = random.randint(0, len(mapok) - 1)
+                await ctx.send(f"{mapok[map_id]}")
+                await asyncio.sleep(0.05)
+        else:
+            raise discord.ext.commands.BadArgument("Maximum 10 pályát randomizálhatsz.")
 
     @commands.command(aliases=["srvinfo", "srvinf", "server", "srv", "guild", "serverinfo"])
     async def guildinfo(self, ctx):

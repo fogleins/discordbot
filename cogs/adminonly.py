@@ -8,6 +8,12 @@ async def is_admin(ctx):
     return ctx.author.id in admins
 
 
+async def is_dam_or_simi(ctx):
+    """Checks if user is DAM :)"""
+    ids = [162662873980469257, 358992693453652000]
+    return ctx.author.id in ids
+
+
 class AdminOnly(commands.Cog):
 
     def __init__(self, bot):
@@ -43,12 +49,14 @@ class AdminOnly(commands.Cog):
         else:
             await ctx.send("Wrong syntax. See ``?help status`` for details.")
 
-    # TODO
     @commands.command(aliases=["send"])
-    @commands.check(is_admin)
+    @commands.check(is_dam_or_simi)
     async def say(self, ctx, channel: discord.TextChannel, *args):  # ctx is needed even if its not used
         """Sends a message. Syntax: ?say channel_mention message_content"""
-        await self.bot.get_channel(channel.id).send(f"{' '.join(args)}")
+        if args is not None:
+            await self.bot.get_channel(channel.id).send(f"{' '.join(args)}")
+        else:  # TODO: this is never reached
+            raise discord.ext.commands.MissingRequiredArgument("Nem küldhetsz üres üzenetet.")
     
     # version info
     @commands.command(aliases=["v"])

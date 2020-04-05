@@ -27,7 +27,7 @@ class Experimental(commands.Cog, name="Experimental"):
         except Exception as e:
             print(f"Non-command error. Couldn't send an error message to the logs channel. ({e})")
 
-    @commands.group(name="Emojis", aliases=["e", "emote", "emotes"])
+    @commands.group(name="Emojis", aliases=["e", "emote", "emotes", "emojis", "emoji"], case_insensitive=True)
     async def emoji(self, ctx):
         """A command group for custom ascii emojis."""
 
