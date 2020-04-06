@@ -161,30 +161,30 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         # derived from discord.ext.commands.ExtensionError
-        if isinstance(error, discord.ext.commands.ExtensionNotFound):
+        if isinstance(error, commands.ExtensionNotFound):
             err = "A modul nem található."
-        elif isinstance(error, discord.ext.commands.ExtensionAlreadyLoaded):
+        elif isinstance(error, commands.ExtensionAlreadyLoaded):
             err = "A betölteni kívánt modul már be van töltve."
-        elif isinstance(error, discord.ext.commands.ExtensionNotLoaded):
+        elif isinstance(error, commands.ExtensionNotLoaded):
             err = "A használni kívánt modul nincs betöltve."
-        elif isinstance(error, discord.ext.commands.NoEntryPointError):
+        elif isinstance(error, commands.NoEntryPointError):
             err = "A betölteni kívánt modul nem rendelkezik 'setup' függvénnyel."
         # derived from discord.ext.commands.CommandError
-        elif isinstance(error, discord.ext.commands.CommandNotFound):
+        elif isinstance(error, commands.CommandNotFound):
             err = "A beírt parancs nem létezik."
-        elif isinstance(error, discord.ext.commands.TooManyArguments):
+        elif isinstance(error, commands.TooManyArguments):
             err = "Túl sok paramétert adtál meg."
-        elif isinstance(error, discord.ext.commands.MissingRequiredArgument):
+        elif isinstance(error, commands.MissingRequiredArgument):
             err = "Nem adtál meg minden szükséges paramétert."
-        elif isinstance(error, discord.ext.commands.BadArgument):
+        elif isinstance(error, commands.BadArgument):
             err = "Nem megfelelő paramétereket adtál meg."
-        elif isinstance(error, discord.ext.commands.UserInputError):
+        elif isinstance(error, commands.UserInputError):
             err = "Nem jól adtad meg a parancsot."
-        elif isinstance(error, discord.ext.commands.CheckFailure):
+        elif isinstance(error, commands.CheckFailure):
             err = "Hiba a jogosultságok ellenőrzése során."
-        elif isinstance(error, discord.ext.commands.CommandInvokeError):
+        elif isinstance(error, commands.CommandInvokeError):
             err = "Hiba a meghívott parancsban."
-        elif isinstance(error, discord.ext.commands.CommandError):
+        elif isinstance(error, commands.CommandError):
             err = "Ismeretlen hiba a parancs futtatása során."
         # any other error is highly unlikely, but this should be able to handle them in case it's needed
         else:

@@ -23,17 +23,21 @@ class Commands(commands.Cog):
         await ctx.message.delete()
 
     # bulk delete, hogy a ?clear ne triggerelje az on_message_delete eventet
+    # TODO: check if amount is positive
     @commands.command(aliases=["delete", "del", "c", "clear", "purge"])
     # amount a törlendő üzenetek száma 
     # (3 a minimum, mert magát a commandot és legalább az utolsó 2 másik üzenetet töröljük)
     async def bulkdel(self, ctx, amount: int = 2):
         """Updated version of ?clear. Deletes a given amount of messages, default is last 2 messages."""
+        if amount <= 0:
+            raise commands.BadArgument(f"Csak pozitív egész számú üzeneteket törölhetsz.")
+
         channel = ctx.message.channel
-        amount = amount + 1  # the command counts as a message too, so if we'd like to del the last 3, we should del 4
-        if (amount > 5) and (not self.bot.is_owner(ctx.author)):
+        amount = amount + 1  # the command counts as a message too, so if we'd like to del x, we should del x + 1
+        if (amount > 5) and (ctx.guild.owner.id != ctx.author.id):
             await ctx.send("``Nice try Tici`` :upside_down:", delete_after=15)
         else:
-            deleted = await channel.purge(limit=int(amount), bulk=True)
+            deleted = await channel.purge(limit=amount, bulk=True)
             await ctx.send(f"Deleted {len(deleted)} messages. :sparkles: :broom:", delete_after=5)
 
     @commands.command()
