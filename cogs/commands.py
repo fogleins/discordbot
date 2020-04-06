@@ -27,10 +27,14 @@ class Commands(commands.Cog):
     @commands.command(aliases=["delete", "del", "c", "clear", "purge"])
     # amount a törlendő üzenetek száma 
     # (3 a minimum, mert magát a commandot és legalább az utolsó 2 másik üzenetet töröljük)
-    async def bulkdel(self, ctx, amount: int = 2):
+    async def bulkdel(self, ctx, amount: str = "2"):
         """Updated version of ?clear. Deletes a given amount of messages, default is last 2 messages."""
+        try:
+            amount = int(amount)
+        except Exception:
+            raise commands.BadArgument("Csak pozitív egész számú üzeneteket törölhetsz.")
         if amount <= 0:
-            raise commands.BadArgument(f"Csak pozitív egész számú üzeneteket törölhetsz.")
+            raise commands.BadArgument("Csak pozitív egész számú üzeneteket törölhetsz.")
 
         channel = ctx.message.channel
         amount = amount + 1  # the command counts as a message too, so if we'd like to del x, we should del x + 1
