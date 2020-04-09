@@ -68,14 +68,13 @@ class Commands(commands.Cog):
             "Anubis",
             "Agency"
         ]
-        meddig = int(amount)
-        if meddig <= 10:
-            for x in range(0, meddig):
+        if amount <= 10:
+            for x in range(0, amount):
                 map_id = random.randint(0, len(maps) - 1)
                 maps_str = f"{maps_str}\n{maps[map_id]}"
             await ctx.send(f"{maps_str}")
         else:
-            raise discord.ext.commands.BadArgument("Maximum 10 pályát randomizálhatsz.")
+            raise commands.BadArgument("Maximum 10 pályát randomizálhatsz.")
 
     @commands.command(aliases=["srvinfo", "srvinf", "server", "srv", "guild", "serverinfo"])
     async def guildinfo(self, ctx):
