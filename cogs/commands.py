@@ -45,28 +45,35 @@ class Commands(commands.Cog):
             await ctx.send(f"Deleted {len(deleted)} messages. :sparkles: :broom:", delete_after=5)
 
     @commands.command()
-    async def csgomaps(self, ctx, amount=1):
+    async def csgomaps(self, ctx, amount: str = "1"):
         """Prints a given number of random CS:GO maps' name. Default is one map. Syntax: ?csgomaps number[int]"""
+        try:
+            amount = int(amount)
+        except ValueError:
+            raise commands.BadArgument("Csak pozitív egész számot adhatsz meg.")
+        if amount <= 0:
+            raise commands.BadArgument("Csak pozitív egész számot adhatsz meg.")
+        maps_str = ""  # the string that will be sent
+        maps = [
+            "Dust 2",
+            "Mirage",
+            "Inferno",
+            "Office",
+            "Cache",
+            "Nuke",
+            "Train",
+            "Vertigo",
+            "Overpass",
+            "Chlorine",
+            "Anubis",
+            "Agency"
+        ]
         meddig = int(amount)
         if meddig <= 10:
             for x in range(0, meddig):
-                mapok = [
-                    "Dust 2",
-                    "Mirage",
-                    "Inferno",
-                    "Office",
-                    "Cache",
-                    "Nuke",
-                    "Train",
-                    "Vertigo",
-                    "Overpass",
-                    "Chlorine",
-                    "Anubis",
-                    "Agency"
-                ]
-                map_id = random.randint(0, len(mapok) - 1)
-                await ctx.send(f"{mapok[map_id]}")
-                await asyncio.sleep(0.05)
+                map_id = random.randint(0, len(maps) - 1)
+                maps_str = f"{maps_str}\n{maps[map_id]}"
+            await ctx.send(f"{maps_str}")
         else:
             raise discord.ext.commands.BadArgument("Maximum 10 pályát randomizálhatsz.")
 
