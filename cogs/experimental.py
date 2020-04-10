@@ -89,24 +89,21 @@ class Experimental(commands.Cog, name="Experimental"):
         """
             Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani adott időre.
             Syntax: ?max [limit(int)] *[ido_percben(float)=120]
-        """
-        """
+
             PARAMETERS
             ----------
+            ctx: discord.ext.commands.Context
+                The context in which the command was invoked; gets passed automatically
             limit: int
                 The number of max users allowed in the voice channel
-            time_interval: float
+            time_length: float
                 The number of minutes until the limit will reset to unlimited, default is 120
         """
         now = datetime.datetime.now()
-        if time_length is None:
-            time_length = 120  # zh-k miatt inkább 2 órára lett növelve
-        elif time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
-            await ctx.send(":x: Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
-            return
+        if time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
+            raise commands.BadArgument("Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
         elif time_length - 9 < 1:  # A warning message is sent 5 minutes before the end of the reservation
-            await ctx.send(":x: Minimum 10 percre kell foglalnod.")
-            return
+            raise commands.BadArgument("Minimum 10 percre kell foglalnod.")
 
         time_length = math.ceil(time_length * 60)  # converting minutes to seconds
         requester = ctx.author
@@ -155,7 +152,7 @@ class Experimental(commands.Cog, name="Experimental"):
                 await asyncio.sleep(1)
                 await self.bot.get_channel(550724640469942285).send(embed=embed)
         else:
-            await ctx.send("You aren't allowed to change the channel's settings.")
+            raise commands.CheckFailure("You aren't allowed to change the channel's settings.")
 
     # gyakorlatilag mehet commands.py-ba
     @commands.command()
