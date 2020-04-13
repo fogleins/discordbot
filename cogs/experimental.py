@@ -85,10 +85,10 @@ class Experimental(commands.Cog, name="Experimental"):
     # THIS FUNCTION IS YET TO BE TESTED!
     # gyakorlatilag mehet commands.py-ba
     @commands.command(aliases=["edit", "limit", "max"])  # max user egy voice channelben
-    async def changelimit(self, ctx, limit: int, time_length: float = 120):
+    async def changelimit(self, ctx, limit: int, time_length: float = 120, *args):
         """
             Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani adott időre.
-            Syntax: ?max [limit(int)] *[ido_percben(float)=120]
+            Syntax: ?max [limit(int)] *[ido_percben(float)=120] *[args]
 
             PARAMETERS
             ----------
@@ -100,6 +100,21 @@ class Experimental(commands.Cog, name="Experimental"):
                 The number of minutes until the limit will reset to unlimited, default is 120
         """
         now = datetime.datetime.now()
+        try:
+            file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "r")
+            is_reserved = bool(file.readline() == "True")  # this will be a string, not bool
+            if is_reserved:  # if True, the channel cannot be reserved
+                file.close()
+                raise commands.CommandError("A szobát már lefoglalták.")
+            else:  # if False, the channel will be reserved
+                # the file should contain True as is_reserved will get this value
+                file.write("True")
+                file.close()
+        except OSError:  # if file is not found
+            file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "w")
+            file.write("True")  # if this command is called, is_reserved should be set to True
+            file.close()
+
         if time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
             raise commands.BadArgument("Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
         elif time_length - 9 < 1:  # A warning message is sent 5 minutes before the end of the reservation
@@ -118,7 +133,24 @@ class Experimental(commands.Cog, name="Experimental"):
                 await channel_to_edit.edit(user_limit=limit)
                 await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
                                f"{round((time_length / 60), 2)} minutes.", delete_after=30)
-                # --- EMBED IS BEING SENT TO #LOGS ---
+                # --- EMBED WITH INFO ABOUT THE RESERVATION ---
+                # only if args is not none
+                if args:
+                    reservation_ends = now + datetime.timedelta(0, time_length)
+                    embed = discord.Embed(
+                        title=f"Foglalás részletei:",
+                        description=f"{ctx.author.mention} lefoglalta az *Itt-nem-zavar-a-Szédületes* szobát "
+                                    f"*{round((time_length / 60), 2)}* percre.",
+                        colour=discord.Colour.orange()
+                    )
+                    embed.set_thumbnail(url=ctx.author.avatar_url)
+                    embed.set_author(name=f"Szoba lefoglalva", icon_url=ctx.guild.icon_url)
+                    embed.set_footer(text=f"{now}")
+                    embed.add_field(name="Foglalás oka:", value=f"{' '.join(args)}", inline=False)
+                    embed.add_field(name="Létszámkorlát:", value=f"{limit} fő", inline=True)
+                    embed.add_field(name="Foglalás vége:", value=f"{reservation_ends}", inline=True)
+                    await self.bot.get_channel(484010396076998686).send(embed=embed)
+                # --- THIS EMBED IS BEING SENT TO #LOGS ---
                 embed = discord.Embed(
                     title=f"``{now}:``",
                     description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
@@ -134,6 +166,9 @@ class Experimental(commands.Cog, name="Experimental"):
                 await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
                 await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
                 await channel_to_edit.edit(user_limit=0)
+                file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "w")
+                file.write("False")  # reservation period ended, the channel can be reserved again
+                file.close()
                 await ctx.send("User limit has been set to unlimited.", delete_after=10)
             elif (limit < 0) or (limit > 99):
                 await ctx.send(":x: Limit must be between 1 and 99.", delete_after=30)

@@ -185,7 +185,7 @@ class Events(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             err = "Hiba a meghívott parancsban."
         elif isinstance(error, commands.CommandError):
-            err = "Ismeretlen hiba a parancs futtatása során."
+            err = "Hiba a parancs futtatása során."
         # any other error is highly unlikely, but this should be able to handle them in case it's needed
         else:
             err = "Ismeretlen hiba."
