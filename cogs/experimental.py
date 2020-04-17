@@ -98,6 +98,8 @@ class Experimental(commands.Cog, name="Experimental"):
                 The number of max users allowed in the voice channel
             time_length: float
                 The number of minutes until the limit will reset to unlimited, default is 120
+            args:
+                The cause of reservation
         """
         now = datetime.datetime.now()
         try:
@@ -139,18 +141,18 @@ class Experimental(commands.Cog, name="Experimental"):
                     reservation_ends = now + datetime.timedelta(0, time_length)
                     embed = discord.Embed(
                         title=f"Foglalás részletei:",
-                        description=f"{ctx.author.mention} lefoglalta az *Itt-nem-zavar-a-Szédületes* szobát "
-                                    f"*{round((time_length / 60), 2)}* percre.",
                         colour=discord.Colour.orange()
                     )
                     embed.set_thumbnail(url=ctx.author.avatar_url)
                     embed.set_author(name=f"Szoba lefoglalva", icon_url=ctx.guild.icon_url)
                     embed.set_footer(text=f"{now}")
                     embed.add_field(name="Foglalás oka:", value=f"{' '.join(args)}", inline=False)
+                    embed.add_field(name="Foglalta:", value=f"{ctx.author.mention}", inline=True)
                     embed.add_field(name="Létszámkorlát:", value=f"{limit} fő", inline=True)
-                    embed.add_field(name="Foglalás vége:", value=f"{reservation_ends}", inline=True)
+                    embed.add_field(name="Időtartam:", value=f"{math.ceil(time_length / 60)} perc", inline=True)
+                    embed.add_field(name="Foglalás lejár:", value=f"{reservation_ends}", inline=False)
                     await self.bot.get_channel(484010396076998686).send(embed=embed)
-                # --- THIS EMBED IS BEING SENT TO #LOGS ---
+                # --- THIS EMBED IS SENT TO #LOGS ---
                 embed = discord.Embed(
                     title=f"``{now}:``",
                     description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
@@ -171,14 +173,12 @@ class Experimental(commands.Cog, name="Experimental"):
                 file.close()
                 await ctx.send("User limit has been set to unlimited.", delete_after=10)
             elif (limit < 0) or (limit > 99):
-                await ctx.send(":x: Limit must be between 1 and 99.", delete_after=30)
-                return
+                raise commands.BadArgument("Limit must be between 1 and 99.")
             elif limit == 0:
                 await channel_to_edit.edit(user_limit=limit)
                 embed = discord.Embed(
                     title=f"``{now}:``",
-                    description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} "
-                                "to unlimited",
+                    description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} to unlimited",
                     colour=discord.Colour.magenta()
                 )
                 embed.set_thumbnail(url=ctx.author.avatar_url)
