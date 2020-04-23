@@ -157,6 +157,23 @@ class Events(commands.Cog):
                 embed.set_author(name=f"{member.name} has updated their VoiceState", icon_url=member.avatar_url)
                 await self.bot.get_channel(550724640469942285).send(embed=embed)
 
+    @commands.Cog.listener()
+    async def on_invite_create(self, invite):
+        now = datetime.datetime.now()
+        if invite.max_age == 0:
+            expires_in = "doesn't have an expiration time set"
+        else:
+            expires_in = f"will expire in {round(invite.max_age / 3600, 2)} hour(s)"  # max_age is in seconds
+        embed = discord.Embed(
+            title=f"``{now}:``",
+            description=f"{invite.inviter.mention} has just created the invite *{invite.code}* for channel "
+                        f"{invite.channel.name}, which {expires_in}, and may be used {invite.max_uses} times.",
+            colour=discord.Colour.dark_orange()
+        )
+        embed.set_thumbnail(url=invite.inviter.avatar_url)
+        embed.set_author(name=f"{invite.inviter.name} has just created an invite", icon_url=invite.inviter.avatar_url)
+        await self.bot.get_channel(550724640469942285).send(embed=embed)
+
     # TODO: command error vs on_error?
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
