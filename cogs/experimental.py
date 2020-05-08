@@ -1,9 +1,10 @@
 import random
-import math  # used in function 'changelimit'
+import math
 import datetime
 import asyncio
 import discord
 from discord.ext import commands
+from cogs.adminonly import is_admin
 
 
 class Experimental(commands.Cog, name="Experimental"):
@@ -216,6 +217,17 @@ class Experimental(commands.Cog, name="Experimental"):
         await self.bot.get_channel(549709362206081076).send("<@358992693453652000> "
                                                             f"sub role has been assigned to {member.name}.")
         await ctx.send(f"Hey {member.mention}, access granted!")
+
+    @commands.command(hidden=True)
+    @commands.check(is_admin)
+    async def delay_message(self, ctx, channel: discord.TextChannel, delay: int, *args):
+        """Sends your message to a given channel after the given amount of seconds."""
+        await ctx.message.delete()
+        when = datetime.datetime.now() + datetime.timedelta(0, delay)
+        await ctx.send(f"Your message will be sent in {delay} seconds ({when}, channel: {channel.mention})",
+                       delete_after=15)
+        await asyncio.sleep(delay)
+        await channel.send(" ".join(args))
 
 
 def setup(bot):
