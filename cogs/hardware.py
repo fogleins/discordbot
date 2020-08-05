@@ -14,8 +14,7 @@ class Hardware(commands.Cog):
 
     @commands.group(invoke_without_command=True)
     async def rbp(self, ctx):  # rbp = raspberry pi
-        await ctx.send("This is a command group, which currently has a single subcommand: ``hdd``. "
-                       "Syntax: ``?rbp hdd``")
+        await ctx.send("This is a command group, for list of available commands, see ``?help rbp``.")
 
     @rbp.command()
     async def hdd(self, ctx):
@@ -51,6 +50,7 @@ class Hardware(commands.Cog):
         """
         await ctx.message.delete()
         self.report_hdd_temp = True
+        await ctx.send(f"Temperature reports have been turned on. Reports will be sent every {report_interval} minutes.")
         while self.report_hdd_temp:
             # running the program as sudo is now handled using a shell script
             # for further information, read the following forum thread:
@@ -62,19 +62,18 @@ class Hardware(commands.Cog):
             if err is None:
                 output = output.decode()    # Converts bytes to str
                 output = output.split("\n\n")
-                hds_credits = f"Hard Disk Sentinel device temperature report\n{output[0]}"     # HDS Version...
-                hds_startupmessage = output[1]  # Examining...
+                hds_credits = f"Hard Disk Sentinel device temperature report"
                 output = output[2].split("\n")
-                # output.pop(2)   # removes the hdd's serial number from the output
                 temperature = output[6]
                 temperature_int = int(temperature[15:17])
                 max_temperature = output[7]
                 max_temperature_int = int(max_temperature[15:17])
                 rep_time = datetime.now()
-                output = f"On {rep_time.year}-{rep_time.month}-{rep_time.day} at {rep_time.hour}:{rep_time.minute}:" \
-                         f"{rep_time.second}.{rep_time.microsecond}:\n{temperature}\n{max_temperature}"
+                output = f"On {rep_time.year}-{rep_time.month:02d}-{rep_time.day:02d} " \
+                         f"at {rep_time.hour:02d}:{rep_time.minute:02d}:{rep_time.second:02d}" \
+                         f".{rep_time.microsecond:06d}:\n{temperature}\n{max_temperature}"
 
-                await ctx.send(f"```{hds_credits}\n\n{hds_startupmessage}\n{output}```")
+                await ctx.send(f"```{hds_credits}\n{output}```")
                 if temperature_int >= max_temperature_int:
                     await ctx.send(f"{ctx.message.author.mention} :triangular_flag_on_post: :thermometer: ")
             else:
