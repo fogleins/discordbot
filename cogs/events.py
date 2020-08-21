@@ -2,6 +2,9 @@ import datetime
 import discord
 from discord.ext import commands
 
+from cogs.database import update_last_in_voice
+from cogs.database import calculate_time_spent_in_voice
+
 
 class Events(commands.Cog):
 
@@ -135,18 +138,29 @@ class Events(commands.Cog):
                     and (before.self_deaf == after.self_deaf) and (before.self_mute == after.self_mute)
                     and (member.id != 549654750585421825)):
                 uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+                # updating last seen time in the database...
+                update_last_in_voice(member.id)
             elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
                     and nem_mute_az_event_oka):
-                uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}**"
+                uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}** " \
+                         f"after {calculate_time_spent_in_voice(member.id)}"  # printing time in voice...
             elif ((before.channel.guild.id != 399595937409925140) and
                     (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
+                # updating last seen time in the database...
+                update_last_in_voice(member.id)
             elif ((before.channel.guild.id == 399595937409925140) and
                     (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has moved from **{before.channel.name}** to **{after.channel.name}**"
             else:
                 uzenet = None
                 kiirhato = False
+            if member.id == 162662873980469257 and now.month == 5 and now.day == 16:
+                await self.bot.get_channel(484010396076998686).send(f"Boldog szülinapot, {member.mention}! "
+                                                                    f":birthday: :tada:")
+            if member.id == 418727904680083457 and now.month == 6 and now.day == 7:
+                await self.bot.get_channel(418727904680083457).send(f"Boldog szülinapot, {member.mention}! "
+                                                                    f":birthday: :tada:")
             if kiirhato:
                 embed = discord.Embed(
                     title=f"``{now}:``",

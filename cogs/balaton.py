@@ -1,6 +1,7 @@
 import datetime
 import discord
 from discord.ext import commands
+from cogs.database import get_spotify_link
 
 
 class BalatonSquad(commands.Cog):
@@ -89,11 +90,12 @@ class BalatonSquad(commands.Cog):
             await ctx.send("No Spotify listening activity detected.")
 
     @commands.command(aliases=["link", "playlistre", "playlist"])
-    async def zenelink(self, ctx):
+    async def zenelink(self, ctx, year: int = datetime.datetime.now().year):
         """Az idei siófoki playlist URL-jét adja vissza."""
-        await ctx.send("A következő linken tudsz számokat adni az idei playlisthez: "
-                       "https://open.spotify.com/user/simike00/playlist"
-                       "/4Zegv0BzKwKYm8XfUB4ws2?si=iWHsWZ2xRxqeJTjEs8Bdjg")
+        try:
+            await ctx.send(f"A {year} évi playlist linkje: {get_spotify_link(year)}")
+        except RuntimeError as e:
+            await ctx.send(f"Hiba: {e}")
 
 
 def setup(bot):
