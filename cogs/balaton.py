@@ -1,7 +1,7 @@
 import datetime
 import discord
 from discord.ext import commands
-from cogs.database import get_spotify_link
+from cogs.database import Database
 
 
 class BalatonSquad(commands.Cog):
@@ -93,7 +93,10 @@ class BalatonSquad(commands.Cog):
     async def zenelink(self, ctx, year: int = datetime.datetime.now().year):
         """Az idei siófoki playlist URL-jét adja vissza."""
         try:
-            await ctx.send(f"A {year} évi playlist linkje: {get_spotify_link(year)}")
+            if type(year) is not int:
+                raise RuntimeError("Az évnek egész típusúnak kell lennie")
+            db = Database("../resources/spotify.db")
+            await ctx.send(f"A {year} évi playlist linkje: {db.get_spotify_link(year)}")
         except RuntimeError as e:
             await ctx.send(f"Hiba: {e}")
 

@@ -79,7 +79,7 @@ class Experimental(commands.Cog, name="Experimental"):
     async def koka(self, ctx):
         """Best command to date."""
         rnd = random.randint(1, 4)
-        kep = discord.File(fp=f"/srv/shared/Simi/programozas/discordbot/rwLive/cogs/koka{rnd}.jpg")
+        kep = discord.File(fp=f"../resources/images/koka{rnd}.jpg")
         await ctx.message.delete()
         await ctx.send(file=kep)
 
