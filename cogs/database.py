@@ -88,3 +88,20 @@ class Database:
             raise RuntimeError(f"Adatbázishiba a születésnap meghatározása során: {e}")
         finally:
             self.db.close()
+
+    def get_debt(self, discord_id: int):
+        """
+        :param discord_id: The discord ID of the member whose debt is returned
+        :return: The amount the member owes :)
+        """
+        try:
+            c = self.open_db()
+            discord_id = (str(discord_id),)
+            result = c.execute("SELECT fizetendo FROM siofok2020_fizetendo WHERE discordID = ?", discord_id).fetchone()
+            if result is None:
+                return 0
+            return result[0]
+        except sqlite3.DatabaseError as e:
+            raise RuntimeError(f"Adatbázishiba: {e}")
+        finally:
+            self.db.close()

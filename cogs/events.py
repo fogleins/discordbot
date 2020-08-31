@@ -126,7 +126,7 @@ class Events(commands.Cog):
         # ezt azért raktam ide, mert az id vizsgálatánál egyes esetekben errort ad
         # pl: on_voice_state_update error: 'NoneType' object has no attribute 'guild'
         if not member.bot:
-            db = Database("../resources/members.db")
+            db = Database()
             now = datetime.datetime.now()
             kiirhato = True
             nem_mute_az_event_oka = (bool((before.deaf == after.deaf) and (before.mute == after.mute)
