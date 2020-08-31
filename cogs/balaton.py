@@ -95,8 +95,23 @@ class BalatonSquad(commands.Cog):
         try:
             if type(year) is not int:
                 raise RuntimeError("Az évnek egész típusúnak kell lennie")
-            db = Database("../resources/spotify.db")
+            db = Database()
             await ctx.send(f"A {year} évi playlist linkje: {db.get_spotify_link(year)}")
+        except RuntimeError as e:
+            await ctx.send(f"Hiba: {e}")
+
+    @commands.command(aliases=["fizetendő"], hidden=True)
+    async def fizetendo(self, ctx):
+        """
+        Visszaadja DiscordID alapján, hogy kinek-mennyi tartozása maradt
+        :param ctx: The contex in which the command was invoked, its passed automatically by discord.py
+        :return: The debt of the member who invoked the command
+        """
+        try:
+            db = Database()
+            fizetendo = db.get_debt(ctx.author.id)
+            await ctx.message.delete()
+            await ctx.send(f"{fizetendo} Ft :money_with_wings:", delete_after=10)
         except RuntimeError as e:
             await ctx.send(f"Hiba: {e}")
 
