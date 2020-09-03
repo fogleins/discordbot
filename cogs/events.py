@@ -153,7 +153,7 @@ class Events(commands.Cog):
 
             if kiirhato:
                 # checking whether the member who updated their voice state has birthday today
-                if db.check_birthday(member.id, now.month, now.day):
+                if db.check_birthday(member.id, now.year, now.month, now.day):
                     await self.bot.get_channel(484010396076998686).send(f"Boldog szülinapot, {member.mention}! "
                                                                         f":birthday: :tada:")
                 embed = discord.Embed(

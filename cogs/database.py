@@ -70,20 +70,36 @@ class Database:
         finally:
             self.db.close()
 
-    def check_birthday(self, discord_id: int, month, day):
+    def check_birthday(self, discord_id: int, year, month, day):
         """
         Checks whether a member who joined a voice channel has birthday today
         :param discord_id: The Discord ID of the member who joined the voice channel
+        :param year: The current year
         :param month: The current month
         :param day: The current day of month
-        :return: True, if the member's birthday is today
+        :return: True, if the member's birthday is today and a birthday wish hasn't been sent yet
         """
         try:
             c = self.open_db()
+            # the member's last stored birthday date, e.g. if one has joined on their birthday in 2018, then the year
+            # 2018 would be stored in the column 'lastDiscordBirthday', so if he/she invokes another voice_state_update
+            # event, the birthday easter egg message would not be sent
             params = (str(discord_id), f"{month:02d}-{day:02d}")
-            result = c.execute("SELECT * FROM members WHERE (discordID = ? AND STRFTIME('%m-%d', DATE(birthday)) = ?)",
-                               params).fetchone()
-            return result is not None
+            last_discord_bday = c.execute("SELECT lastDiscordBirthday FROM members WHERE (discordID = ? "
+                                          "AND STRFTIME('%m-%d', DATE(birthday)) = ?)", params).fetchone()
+
+            # checking whether the member has already gotten a birthday message
+            if last_discord_bday is not None:
+                bday_year = last_discord_bday[0]
+                if bday_year == year:
+                    return False  # a birthday message was already sent
+                else:
+                    # updating the year
+                    params = (year, str(discord_id))
+                    c.execute("UPDATE members SET lastDiscordBirthday = ? WHERE discordID = ?", params)
+                    self.db.commit()
+                    return True
+            return False
         except sqlite3.DatabaseError as e:
             raise RuntimeError(f"Adatbázishiba a születésnap meghatározása során: {e}")
         finally:
