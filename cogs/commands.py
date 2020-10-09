@@ -87,7 +87,7 @@ class Commands(commands.Cog):
         embed.add_field(name="ServerID:", value=f"{guild.id}", inline=True)
         embed.add_field(name="Region:", value=f"{guild.region}", inline=True)
         await ctx.message.delete()
-        await self.bot.get_channel(ctx.channel.id).send(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["about", "user", "usr"])
     async def userinfo(self, ctx):
@@ -124,7 +124,7 @@ class Commands(commands.Cog):
         embed.add_field(name="Activity:", value=f"{activity}", inline=True)
         embed.add_field(name="VoiceState:", value=f"{user_voice_state}", inline=False)
         await ctx.message.delete()
-        await self.bot.get_channel(ctx.channel.id).send(embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.command(aliases=["testrole", "testRole", "test", "testing"])
     async def tester(self, ctx):

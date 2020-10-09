@@ -46,14 +46,16 @@ class SzeduletesBot(commands.Bot):
         await super().close()
         gc.collect()  # explicit garbage collector call
 
-    def get_textchannel(self, channel_name):
+    def get_channel(self, channel_name):
         """
         Returns a discord.TextChannel object
         :param channel_name: The name of the channel
         :return: The TextChannel object with the given name
         :raise: ChannelNotFound if the channel name was not found in the database
         """
-        if channel_name in self._channel_cache:
+        if type(channel_name) is int:  # some funcions may call this method with a channel id
+            return super().get_channel(channel_name)
+        elif channel_name in self._channel_cache:
             channel_id = self._channel_cache[channel_name]
         else:
             db = Database("./resources/members.db")
@@ -62,12 +64,12 @@ class SzeduletesBot(commands.Bot):
                 self._channel_cache[channel_name] = channel_id
             else:
                 raise commands.ChannelNotFound("Bad channel name argument.")
-        return self.get_channel(channel_id)
+        return super().get_channel(channel_id)
 
     async def on_ready(self):
         await self.change_presence(activity=discord.Activity(
             type=discord.ActivityType.listening, name="commands || ?help"))
-        await self.get_textchannel("test").send("I'm back online! :globe_with_meridians: :white_check_mark:")
+        await self.get_channel("test").send("I'm back online! :globe_with_meridians: :white_check_mark:")
         print(f"Logged in as {self.user.name}\n{self.user.id}\n------\n")
 
 
