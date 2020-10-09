@@ -1,6 +1,5 @@
 import datetime
 import random
-import asyncio
 import discord
 from discord.ext import commands
 
@@ -13,13 +12,7 @@ class Commands(commands.Cog):
     @commands.command()
     async def changelog(self, ctx):
         """Prints what's new in this version"""
-        await ctx.send("-Updated CS map list based on the recent updates"
-                       "\n-The '?max' command has been completely rewritten, see '?help max' for details."
-                       "\n-Changed the custom ascii emoji functions' structure."
-                       "\n-Check out '?kóka'."
-                       "\n-Bug fixes :hammer:\n:broom: :sparkles: "
-                       "**-Code cleanup:** this release focuses on having better code. This results both in "
-                       "improved performance and easier development.")
+        await ctx.send("-Updated the discord.py library version\n-The Bot class has been rewritten")
         await ctx.message.delete()
 
     # bulk delete, hogy a ?clear ne triggerelje az on_message_delete eventet
@@ -53,7 +46,6 @@ class Commands(commands.Cog):
             raise commands.BadArgument("Csak pozitív egész számot adhatsz meg.")
         if amount <= 0:
             raise commands.BadArgument("Csak pozitív egész számot adhatsz meg.")
-        maps_str = ""  # the string that will be sent
         maps = [
             "Dust 2",
             "Mirage",
@@ -69,9 +61,9 @@ class Commands(commands.Cog):
             "Agency"
         ]
         if amount <= 10:
-            for x in range(0, amount):
-                map_id = random.randint(0, len(maps) - 1)
-                maps_str = f"{maps_str}\n{maps[map_id]}"
+            maps_str = random.choice(maps)  # the string that will be sent
+            for x in range(0, amount - 1):
+                maps_str += f"\n{random.choice(maps)}"
             await ctx.send(f"{maps_str}")
         else:
             raise commands.BadArgument("Maximum 10 pályát randomizálhatsz.")
@@ -153,8 +145,7 @@ class Commands(commands.Cog):
         if minimum_role <= top_role:
             await member.add_roles(role_to_add)
             await ctx.message.delete()
-            await self.bot.get_channel(549709362206081076).send(f"{ctx.guild.owner.mention} {member.name} has "
-                                                                "access to nsfw from now on.")
+            await self.bot.get_textchannel("logs").send(f"{member.name} has access to nsfw from now on.")
             await ctx.send(f"Hey {ctx.message.author.mention}, access granted!")
         else:
             await ctx.send("You don't have a high enough role to do that. :no_entry:")
@@ -205,7 +196,7 @@ class Commands(commands.Cog):
         file.close()
         message = ctx.message
         await message.add_reaction(u"\U0001F44C")
-        await self.bot.get_channel(549709362206081076).send(f"{ctx.guild.owner.mention} new suggestion(s)!")
+        await self.bot.get_textchannel("test").send(f"{ctx.guild.owner.mention} new suggestion(s)!")
 
     @commands.command(aliases=["plsfix", "pleasefix", "fix"])
     async def bug(self, ctx):
@@ -216,7 +207,29 @@ class Commands(commands.Cog):
         file.close()
         message = ctx.message
         await message.add_reaction(u"\U0001F916")
-        await self.bot.get_channel(549709362206081076).send(f"{ctx.guild.owner.mention} possible bug(s) reported!")
+        await self.bot.get_textchannel("test").send(f"{ctx.guild.owner.mention} possible bug(s) reported!")
+
+    @commands.command(aliases=["ut"])
+    async def uptime(self, ctx):
+        timedelta = datetime.datetime.now() - self.bot.online_since
+        await ctx.message.delete()
+        td_seconds = timedelta.total_seconds()
+        td = {"days": int(td_seconds / 84600),
+              "hours": int(td_seconds / 3600 % 24),
+              "minutes": int(td_seconds / 60 % 60),
+              "seconds": int(td_seconds % 60)}
+
+        # strings in singular or plural form depending on the values they stand after
+        hour = "hour" if td["hours"] == 1 else "hours"
+        minute = "minute" if td["minutes"] == 1 else "minutes"
+        second = "second" if td["seconds"] == 1 else "seconds"
+        uptime = f"{td['hours']} {hour}, {td['minutes']} {minute} and {td['seconds']} {second}"
+
+        if timedelta.days == 0:
+            await ctx.send(f"``Uptime: {uptime}``")
+        else:
+            day = "day" if td["days"] == 1 else "days"
+            await ctx.send(f"``Uptime: {td['days']} {day}, {uptime}``")
 
 
 def setup(bot):
