@@ -26,9 +26,9 @@ class Experimental(commands.Cog, name="Experimental"):
                 description=f":interrobang: Non-command error: {event} raised an exception:",
                 colour=discord.Colour.from_rgb(255, 0, 13)
             )
-            embed.set_thumbnail(url=f"{event.guild.icon.url}")  # TODO: does this return the guild icon?
-            embed.set_author(name="Non-command error", icon_url=f"{event.guild.icon.url}")  # TODO: itt is
-            await self.bot.get_channel(550724640469942285).send(embed=embed)
+            embed.set_thumbnail(url=f"{event.guild.icon.url}")
+            embed.set_author(name="Non-command error", icon_url=f"{event.guild.icon.url}")
+            await self.bot.get_channel("logs").send(embed=embed)
         except Exception as e:
             print(f"Non-command error. Couldn't send an error message to the logs channel. ({e})")
 
@@ -63,20 +63,16 @@ class Experimental(commands.Cog, name="Experimental"):
 
     # TODO: this command should be revised
     @commands.command(aliases=["remind"])
-    async def reminder(self, ctx, time, title):
-        """Admin-only. Sets a reminder. Syntax: ?remind time[int, in seconds] title[str, between ""]"""
-        if ctx.author.is_owner:
-            try:
-                time = int(time)
-                title = str(title)
-                # emoji https://www.fileformat.info/info/unicode/char/2705/index.htm
-                await ctx.message.add_reaction(u"\u2705")
-                await asyncio.sleep(time)
-                await ctx.send(f"{ctx.guild.owner.mention} you wanted me to remind you to {title}")
-            except Exception as e:
-                await ctx.send(f"Error creating reminder. ({e})")
-        else:
-            await ctx.send("This command is admin-only.")
+    @commands.check(is_admin)
+    async def reminder(self, ctx, time: int, *args):
+        """Admin-only. Sets a reminder. Syntax: ?remind time[int, in minutes] title[str]"""
+        try:
+            # emoji https://www.fileformat.info/info/unicode/char/2705/index.htm
+            await ctx.message.add_reaction(u"\u2705")
+            await asyncio.sleep(time * 60)
+            await ctx.send(f"{ctx.guild.owner.mention} you wanted me to remind you to {' '.join(args)}")
+        except Exception as e:
+            await ctx.send(f"Error creating reminder. ({e})")
 
     # tesztelésre vár + képeket be kell szerezni
     @commands.command(aliases=["Kóka", "kóka"])
@@ -130,7 +126,7 @@ class Experimental(commands.Cog, name="Experimental"):
                 embed.add_field(name="Létszámkorlát:", value=f"{limit} fő", inline=True)
                 embed.add_field(name="Időtartam:", value=f"{math.ceil(time_length / 60)} perc", inline=True)
                 embed.add_field(name="Foglalás lejár:", value=f"{reservation_ends}", inline=False)
-                await self.bot.get_channel(484010396076998686).send(embed=embed)
+                await self.bot.get_channel("general-1337").send(embed=embed)
 
             embed = discord.Embed(
                 title=f"``{now}:``",
@@ -140,24 +136,13 @@ class Experimental(commands.Cog, name="Experimental"):
             )
             embed.set_thumbnail(url=ctx.author.avatar_url)
             embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-            await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
+            await self.bot.get_channel("logs").send(embed=embed)
 
             await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
             await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
             await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
             await channel.set_user_limit(limit=0)
             await ctx.send("User limit has been set to unlimited.", delete_after=10)
-
-            # embed = discord.Embed(
-            #     title=f"``{now}:``",
-            #     description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} to unlimited",
-            #     colour=discord.Colour.magenta()
-            # )
-            # embed.set_thumbnail(url=ctx.author.avatar_url)
-            # embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-            # await ctx.send(embed=embed)
-            # await asyncio.sleep(1)
-            # await self.bot.get_channel(550724640469942285).send(embed=embed)  # logs
         else:
             raise commands.CheckFailure("You aren't allowed to change the channel's settings.")
 
@@ -185,8 +170,8 @@ class Experimental(commands.Cog, name="Experimental"):
         member = ctx.author
         await member.add_roles(sub_role)
         await ctx.message.delete()
-        await self.bot.get_channel(549709362206081076).send("<@358992693453652000> "
-                                                            f"sub role has been assigned to {member.name}.")
+        await self.bot.get_channel("test").send("<@358992693453652000> "
+                                                f"sub role has been assigned to {member.name}.")
         await ctx.send(f"Hey {member.mention}, access granted!")
 
     @commands.command(hidden=True)

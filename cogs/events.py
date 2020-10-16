@@ -15,7 +15,7 @@ class Events(commands.Cog):
         now = datetime.datetime.now()
         role = discord.utils.get(member.guild.roles, name="newcomer")
         await member.add_roles(role)
-        uzenet = f"{member.name} ({member.id}) is now part of this discord server!"
+        uzenet = f"{member.name} ({member.id}) is now a member of this discord server!"
         embed = discord.Embed(
             title=f"``{now}:`` ",
             description=f"{uzenet}",
@@ -57,19 +57,13 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         now = datetime.datetime.now()
-        uzenet_content = message.content
-        if message.author.bot:
-            pass
-        elif (message.author.id == 549654750585421825 or uzenet_content.startswith('?')
-              or uzenet_content.startswith("Unloaded") or uzenet_content.startswith("Loaded")
-              or uzenet_content.startswith("User limit") or len(uzenet_content) > 1000
-              or uzenet_content.startswith("\\") or uzenet_content.startswith("/////")):
+        if (message.author.bot or message.content.startswith('?') or len(message.content) > 1000
+                or message.content.startswith("\\") or message.content.startswith(".")):
             pass
         else:
             if message.attachments:
                 attachment_link = message.attachments[0].url
-                logba_ez_megy = (f"The following message was deleted from {message.channel.mention}: "
-                                 f"{attachment_link}")
+                logba_ez_megy = f"The following message was deleted from {message.channel.mention}: {attachment_link}"
             else:
                 logba_ez_megy = f"The message **{message.content}** was deleted from {message.channel.mention}"
             embed = discord.Embed(
@@ -120,14 +114,11 @@ class Events(commands.Cog):
             colour=discord.Colour.dark_teal()
         )
         embed.set_thumbnail(url=reaction.message.author.avatar_url)
-        embed.set_author(name=user.name + " has removed a reaction", icon_url=user.avatar_url)
+        embed.set_author(name=f"{user.name} has removed a reaction", icon_url=user.avatar_url)
         await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
-        # ezt azért raktam ide, mert az id vizsgálatánál egyes esetekben errort ad
-        # pl: on_voice_state_update error: 'NoneType' object has no attribute 'guild'
-        # if (member is not None) and (not member.bot) and (not member.status == Status.offline):
         if (member is not None) and (not member.bot):
             db = Database()
             now = datetime.datetime.now()
