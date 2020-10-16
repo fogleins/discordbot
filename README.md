@@ -1,6 +1,10 @@
 # Szédületes bot
 A Discord bot written in Python, using discord.py.
 
+### Changelog (2020-10-16)
+* Major bug fixes
+* A few changes in the way databases are handled
+
 ### Changelog (2020-10-10)
 * The bot class has been rewritten
 * A few functions have been moved or removed

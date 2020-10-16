@@ -36,7 +36,7 @@ class SzeduletesBot(commands.Bot):
 
     def run(self):
         """Starts the bot."""
-        db = Database("./resources/members.db")
+        db = Database()
         token = db.query("SELECT token FROM tokens WHERE name = ?", ("ellbot",))[0]
         db.close()
         super().run(token)
@@ -58,7 +58,7 @@ class SzeduletesBot(commands.Bot):
         elif channel_name in self._channel_cache:
             channel_id = self._channel_cache[channel_name]
         else:
-            db = Database("./resources/members.db")
+            db = Database()
             channel_id = db.query("SELECT id FROM text_channels WHERE name = ?", (channel_name,))[0]
             if channel_id is not None:
                 self._channel_cache[channel_name] = channel_id

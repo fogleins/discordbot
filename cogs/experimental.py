@@ -1,10 +1,13 @@
-import random
-import math
-import datetime
 import asyncio
+import datetime
+import math
+import random
+
 import discord
 from discord.ext import commands
+
 from cogs.adminonly import is_admin
+from cogs.guildclasses import GuildVoiceChannel
 
 
 class Experimental(commands.Cog, name="Experimental"):
@@ -15,6 +18,7 @@ class Experimental(commands.Cog, name="Experimental"):
     # TODO: is this needed when we have on_command_error?
     @commands.Cog.listener()
     async def on_error(self, event):
+        print(event)
         now = datetime.datetime.now()
         try:
             embed = discord.Embed(
@@ -83,40 +87,18 @@ class Experimental(commands.Cog, name="Experimental"):
         await ctx.message.delete()
         await ctx.send(file=kep)
 
-    # THIS FUNCTION IS YET TO BE TESTED!
-    # gyakorlatilag mehet commands.py-ba
-    @commands.command(aliases=["edit", "limit", "max"])  # max user egy voice channelben
+    @commands.command(aliases=["reserve", "edit", "limit", "max"])
     async def changelimit(self, ctx, limit: int, time_length: float = 120, *args):
         """
-            Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani adott időre.
-            Syntax: ?max [limit(int)] *[ido_percben(float)=120] *[args]
-
-            PARAMETERS
-            ----------
-            ctx: discord.ext.commands.Context
-                The context in which the command was invoked; gets passed automatically
-            limit: int
-                The number of max users allowed in the voice channel
-            time_length: float
-                The number of minutes until the limit will reset to unlimited, default is 120
-            args:
-                The cause of reservation
+        Az 'Itt-nem-zavar-a-Szédületes' channelt lehet kisajátítani adott időre.
+        Syntax: ?max [limit(int)] *[ido_percben(float)=120] *[args]
+        :param ctx: The context in which the command was invoked; gets passed automatically
+        :param limit: The number of max users allowed in the voice channel
+        :param time_length: The number of minutes until the limit will reset to unlimited, default is 120
+        :param args: The cause of reservation
+        :return:
         """
         now = datetime.datetime.now()
-        try:
-            file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "r")
-            is_reserved = bool(file.readline() == "True")  # this will be a string, not bool
-            if is_reserved:  # if True, the channel cannot be reserved
-                file.close()
-                raise commands.CommandError("A szobát már lefoglalták.")
-            else:  # if False, the channel will be reserved
-                # the file should contain True as is_reserved will get this value
-                file.write("True")
-                file.close()
-        except OSError:  # if file is not found
-            file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "w")
-            file.write("True")  # if this command is called, is_reserved should be set to True
-            file.close()
 
         if time_length > 4500:  # Max allowed reservation length is 27000 seconds = 4500 minutes = 7.5 hours
             raise commands.BadArgument("Maximum 4500 percre (7,5 óra) foglalhatod a szobát.")
@@ -124,69 +106,58 @@ class Experimental(commands.Cog, name="Experimental"):
             raise commands.BadArgument("Minimum 10 percre kell foglalnod.")
 
         time_length = math.ceil(time_length * 60)  # converting minutes to seconds
-        requester = ctx.author
-        guild = ctx.message.guild
-        channel_to_edit = discord.utils.get(guild.voice_channels, name="Itt-nem-zavar-a-Szédületes")
+        channel = GuildVoiceChannel(discord.utils.get(ctx.guild.voice_channels, name="Itt-nem-zavar-a-Szédületes"))
         minimum_role = discord.utils.get(ctx.guild.roles, name="Balaton Squad")
-        top_role = requester.top_role
         await ctx.message.delete()
 
-        if top_role >= minimum_role:
-            if (limit > 0) and (limit < 99):
-                await channel_to_edit.edit(user_limit=limit)
-                await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
-                               f"{round((time_length / 60), 2)} minutes.", delete_after=30)
-                # --- EMBED WITH INFO ABOUT THE RESERVATION ---
-                # only if args is not none
-                if args:
-                    reservation_ends = now + datetime.timedelta(0, time_length)
-                    embed = discord.Embed(
-                        title=f"Foglalás részletei:",
-                        colour=discord.Colour.orange()
-                    )
-                    embed.set_thumbnail(url=ctx.author.avatar_url)
-                    embed.set_author(name=f"Szoba lefoglalva", icon_url=ctx.guild.icon_url)
-                    embed.set_footer(text=f"{now}")
-                    embed.add_field(name="Foglalás oka:", value=f"{' '.join(args)}", inline=False)
-                    embed.add_field(name="Foglalta:", value=f"{ctx.author.mention}", inline=True)
-                    embed.add_field(name="Létszámkorlát:", value=f"{limit} fő", inline=True)
-                    embed.add_field(name="Időtartam:", value=f"{math.ceil(time_length / 60)} perc", inline=True)
-                    embed.add_field(name="Foglalás lejár:", value=f"{reservation_ends}", inline=False)
-                    await self.bot.get_channel(484010396076998686).send(embed=embed)
-                # --- THIS EMBED IS SENT TO #LOGS ---
-                embed = discord.Embed(
-                    title=f"``{now}:``",
-                    description=f"{ctx.author.mention} has changed the user limit of {channel_to_edit.mention} "
-                                f"to {limit} for {round((time_length / 60), 2)} minutes.",
-                    colour=discord.Colour.magenta()
-                )
-                embed.set_thumbnail(url=ctx.author.avatar_url)
-                embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-                await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
-                # --- END OF EMBED ---
+        if ctx.author.top_role >= minimum_role:
+            await channel.set_user_limit(limit=limit)
+            await ctx.send(f"User limit has been updated to {limit}. It will be set to unlimited in "
+                           f"{round((time_length / 60), 2)} minutes.", delete_after=30)
 
-                await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
-                await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
-                await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
-                await channel_to_edit.edit(user_limit=0)
-                file = open("/srv/shared/Simi/programozas/discordbot/0foglalas.txt", "w")
-                file.write("False")  # reservation period ended, the channel can be reserved again
-                file.close()
-                await ctx.send("User limit has been set to unlimited.", delete_after=10)
-            elif (limit < 0) or (limit > 99):
-                raise commands.BadArgument("Limit must be between 1 and 99.")
-            elif limit == 0:
-                await channel_to_edit.edit(user_limit=limit)
+            # only if args is not none a message with detailed info is sent to '#general'
+            if args:
+                reservation_ends = now + datetime.timedelta(0, time_length)
                 embed = discord.Embed(
-                    title=f"``{now}:``",
-                    description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} to unlimited",
-                    colour=discord.Colour.magenta()
+                    title=f"Foglalás részletei:",
+                    colour=discord.Colour.orange()
                 )
                 embed.set_thumbnail(url=ctx.author.avatar_url)
-                embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
-                await ctx.send(embed=embed)
-                await asyncio.sleep(1)
-                await self.bot.get_channel(550724640469942285).send(embed=embed)
+                embed.set_author(name=f"Szoba lefoglalva", icon_url=ctx.guild.icon_url)
+                embed.set_footer(text=f"{now}")
+                embed.add_field(name="Foglalás oka:", value=f"{' '.join(args)}", inline=False)
+                embed.add_field(name="Foglalta:", value=f"{ctx.author.mention}", inline=True)
+                embed.add_field(name="Létszámkorlát:", value=f"{limit} fő", inline=True)
+                embed.add_field(name="Időtartam:", value=f"{math.ceil(time_length / 60)} perc", inline=True)
+                embed.add_field(name="Foglalás lejár:", value=f"{reservation_ends}", inline=False)
+                await self.bot.get_channel(484010396076998686).send(embed=embed)
+
+            embed = discord.Embed(
+                title=f"``{now}:``",
+                description=f"{ctx.author.mention} has changed the user limit of {channel.channel.mention} to {limit} "
+                            f"for {round((time_length / 60), 2)} minutes.",
+                colour=discord.Colour.magenta()
+            )
+            embed.set_thumbnail(url=ctx.author.avatar_url)
+            embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
+            await self.bot.get_channel(550724640469942285).send(embed=embed)  # this goes to #logs
+
+            await asyncio.sleep(time_length - 300)  # sleeps for the given length of time minus 5 minutes
+            await ctx.send("User limit will be set to unlimited in 5 minutes.", delete_after=120)
+            await asyncio.sleep(300)  # A warning message is sent 5 minutes before the end of the reservation
+            await channel.set_user_limit(limit=0)
+            await ctx.send("User limit has been set to unlimited.", delete_after=10)
+
+            # embed = discord.Embed(
+            #     title=f"``{now}:``",
+            #     description=f"{ctx.author.name} has set the user limit of {channel_to_edit.mention} to unlimited",
+            #     colour=discord.Colour.magenta()
+            # )
+            # embed.set_thumbnail(url=ctx.author.avatar_url)
+            # embed.set_author(name="Voice channel user limit updated", icon_url=ctx.author.avatar_url)
+            # await ctx.send(embed=embed)
+            # await asyncio.sleep(1)
+            # await self.bot.get_channel(550724640469942285).send(embed=embed)  # logs
         else:
             raise commands.CheckFailure("You aren't allowed to change the channel's settings.")
 

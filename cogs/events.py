@@ -2,7 +2,7 @@ import datetime
 import discord
 from discord.ext import commands
 
-from cogs.database import Database
+from cogs.database import *
 
 
 class Events(commands.Cog):
@@ -24,7 +24,7 @@ class Events(commands.Cog):
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_author(name=f"{member.name} has joined the server", icon_url=member.avatar_url)
         embed.add_field(name="Hey,", value="<@358992693453652000> you need to see this!")
-        await self.bot.get_channel(550724640469942285).send(embed=embed)
+        await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_member_remove(self, member):
@@ -37,7 +37,7 @@ class Events(commands.Cog):
         embed.set_thumbnail(url=member.avatar_url)
         embed.set_author(name=f"{member.name} has just left the server", icon_url=member.avatar_url)
         embed.add_field(name="Hey,", value="<@358992693453652000> you need to see this!")
-        await self.bot.get_channel(550724640469942285).send(embed=embed)
+        await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_edit(self, before, after):
@@ -52,16 +52,18 @@ class Events(commands.Cog):
             )
             embed.set_thumbnail(url=after.author.avatar_url)
             embed.set_author(name=f"{after.author.name} has edited a message", icon_url=after.author.avatar_url)
-            await self.bot.get_channel(550724640469942285).send(embed=embed)
+            await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         now = datetime.datetime.now()
         uzenet_content = message.content
-        if (message.author.id == 549654750585421825 or uzenet_content.startswith('?')
-                or uzenet_content.startswith("Unloaded") or uzenet_content.startswith("Loaded")
-                or uzenet_content.startswith("User limit") or len(uzenet_content) > 1000
-                or uzenet_content.startswith("\\") or uzenet_content.startswith("/////")):
+        if message.author.bot:
+            pass
+        elif (message.author.id == 549654750585421825 or uzenet_content.startswith('?')
+              or uzenet_content.startswith("Unloaded") or uzenet_content.startswith("Loaded")
+              or uzenet_content.startswith("User limit") or len(uzenet_content) > 1000
+              or uzenet_content.startswith("\\") or uzenet_content.startswith("/////")):
             pass
         else:
             if message.attachments:
@@ -78,7 +80,7 @@ class Events(commands.Cog):
             embed.set_thumbnail(url=message.author.avatar_url)
             embed.set_author(name=f"A message sent by {message.author.name} was deleted",
                              icon_url=message.author.avatar_url)
-            await self.bot.get_channel(550724640469942285).send(embed=embed)
+            await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_reaction_add(self, reaction, user):
@@ -99,7 +101,7 @@ class Events(commands.Cog):
             )
             embed.set_thumbnail(url=reaction.message.author.avatar_url)
             embed.set_author(name=f"{user.name} has added a reaction", icon_url=user.avatar_url)
-            await self.bot.get_channel(550724640469942285).send(embed=embed)
+            await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_reaction_remove(self, reaction, user):
@@ -119,16 +121,16 @@ class Events(commands.Cog):
         )
         embed.set_thumbnail(url=reaction.message.author.avatar_url)
         embed.set_author(name=user.name + " has removed a reaction", icon_url=user.avatar_url)
-        await self.bot.get_channel(550724640469942285).send(embed=embed)
+        await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_voice_state_update(self, member, before, after):
         # ezt azért raktam ide, mert az id vizsgálatánál egyes esetekben errort ad
         # pl: on_voice_state_update error: 'NoneType' object has no attribute 'guild'
-        if not member.bot:
+        # if (member is not None) and (not member.bot) and (not member.status == Status.offline):
+        if (member is not None) and (not member.bot):
             db = Database()
             now = datetime.datetime.now()
-            kiirhato = True
             nem_mute_az_event_oka = (bool((before.deaf == after.deaf) and (before.mute == after.mute)
                                           and (before.self_deaf == after.self_deaf)
                                           and (before.self_mute == after.self_mute)
@@ -137,33 +139,32 @@ class Events(commands.Cog):
                 uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
                 db.update_last_in_voice(member.id)  # updating last seen time in the database...
             elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
-                    and nem_mute_az_event_oka):
+                  and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}** " \
                          f"after {db.calculate_time_spent_in_voice(member.id)}"  # printing time in voice...
             elif ((before.channel.guild.id != 399595937409925140) and
-                    (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                  (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
                 db.update_last_in_voice(member.id)  # updating last seen time in the database...
             elif ((before.channel.guild.id == 399595937409925140) and
-                    (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
+                  (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has moved from **{before.channel.name}** to **{after.channel.name}**"
             else:
-                uzenet = None
-                kiirhato = False
+                return
 
-            if kiirhato:
-                # checking whether the member who updated their voice state has birthday today
-                if db.check_birthday(member.id, now.year, now.month, now.day):
-                    await self.bot.get_channel(484010396076998686).send(f"Boldog szülinapot, {member.mention}! "
-                                                                        f":birthday: :tada:")
-                embed = discord.Embed(
-                    title=f"``{now}:``",
-                    description=f"{uzenet}",
-                    colour=discord.Colour.blue()
-                )
-                embed.set_thumbnail(url=member.avatar_url)
-                embed.set_author(name=f"{member.name} has updated their VoiceState", icon_url=member.avatar_url)
-                await self.bot.get_channel(550724640469942285).send(embed=embed)
+            # checking whether the member who updated their voice state has birthday today
+            if db.check_birthday(member.id, now.year, now.month, now.day):
+                await self.bot.get_channel("general-1337").send(f"Boldog szülinapot, {member.mention}! "
+                                                                f":birthday: :tada:")
+            db.close()
+            embed = discord.Embed(
+                title=f"``{now}:``",
+                description=f"{uzenet}",
+                colour=discord.Colour.blue()
+            )
+            embed.set_thumbnail(url=member.avatar_url)
+            embed.set_author(name=f"{member.name} has updated their VoiceState", icon_url=member.avatar_url)
+            await self.bot.get_channel("logs").send(embed=embed)
 
     @commands.Cog.listener()
     async def on_invite_create(self, invite):
@@ -180,7 +181,7 @@ class Events(commands.Cog):
         )
         embed.set_thumbnail(url=invite.inviter.avatar_url)
         embed.set_author(name=f"{invite.inviter.name} has just created an invite", icon_url=invite.inviter.avatar_url)
-        await self.bot.get_channel(550724640469942285).send(embed=embed)
+        await self.bot.get_channel("logs").send(embed=embed)
 
     # TODO: command error vs on_error?
     @commands.Cog.listener()
