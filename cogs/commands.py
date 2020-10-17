@@ -90,23 +90,20 @@ class Commands(commands.Cog):
         await ctx.send(embed=embed)
 
     @commands.command(aliases=["about", "user", "usr"])
-    async def userinfo(self, ctx):
+    async def userinfo(self, ctx, member_id: int = None):
         """Shows info about a guild member. If no ID is passed, info about the message author will be shown."""
         now = datetime.datetime.now()
         # ha nem ad meg ID-t, akkor feltételezzük, hogy magáról akar infót
-        if len(ctx.message.content.split()) == 1:
-            member = ctx.author
-        else:
-            msg_content_split = ctx.message.content.split()
-            member = ctx.message.guild.get_member(int(msg_content_split[1]))  # fetches the member by id
+        member = ctx.author if not member_id else ctx.message.guild.get_member(member_id)  # fetches the member by id
+        if not member:  # member might be None if he's offline or the user with the given id is not in this server
+            await ctx.send(":x: A lekérdezett azonosítójú felhasználó nem elérhető. Lehet, hogy offline, vagy "
+                           "hibás ID-t adtál meg.")
+            return
+        activity = member.activity.name if member.activity else member.activity
         if member.voice:
             user_voice_state = f"Currently connected to channel {member.voice.channel.name}"
         else:
             user_voice_state = f"{member.name} is currently not connected to any voice channels."
-        if member.activity:
-            activity = member.activity.name
-        else:
-            activity = member.activity
 
         embed = discord.Embed(
             title=f"``{member.name}:``",
