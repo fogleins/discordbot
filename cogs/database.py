@@ -58,8 +58,10 @@ class Database:
             self.query("UPDATE members SET inVoiceDuration = (SELECT TIME(strftime('%s', 'now', 'localtime') "
                        "- lastInVoice, 'unixepoch')) WHERE discordID = ?", (str(discord_id),))
             self.commit()
-            timedelta = self.query("SELECT inVoiceDuration FROM members WHERE discordID = ?", (str(discord_id),))[0]
-            return timedelta
+            timedelta = self.query("SELECT inVoiceDuration FROM members WHERE discordID = ?", (str(discord_id),))
+            if timedelta:
+                return timedelta[0]
+            return -1  # if the member was not in the database, we wont print the time spent in voice
         except sqlite3.DatabaseError as e:
             raise RuntimeError(f"Hiba az online töltött idő kiszámítása során: {e}")
 

@@ -131,8 +131,10 @@ class Events(commands.Cog):
                 db.update_last_in_voice(member.id)  # updating last seen time in the database...
             elif ((before.channel.guild.id == 399595937409925140) and (after.channel is None)
                   and nem_mute_az_event_oka):
+                timedelta = db.calculate_time_spent_in_voice(member.id)
                 uzenet = f"**{member.name}** has just disconnected from **{before.channel.name}** " \
-                         f"after {db.calculate_time_spent_in_voice(member.id)}"  # printing time in voice...
+                         f"after {timedelta}" if timedelta != -1 \
+                    else f"**{member.name}** has just disconnected from **{before.channel.name}**"
             elif ((before.channel.guild.id != 399595937409925140) and
                   (after.channel.guild.id == 399595937409925140) and nem_mute_az_event_oka):
                 uzenet = f"**{member.name}** has just joined **{after.channel.name}**"
