@@ -7,6 +7,7 @@ import discord
 from discord.ext import commands
 
 from cogs.database import Database
+from cogs.hardware import get_system_uptime
 
 
 class SzeduletesBot(commands.Bot):
@@ -69,7 +70,8 @@ class SzeduletesBot(commands.Bot):
     async def on_ready(self):
         await self.change_presence(activity=discord.Activity(
             type=discord.ActivityType.listening, name="commands || ?help"))
-        await self.get_channel("test").send("I'm back online! :globe_with_meridians: :white_check_mark:")
+        await self.get_channel("test").send(f"``[{datetime.datetime.now()}; System uptime: {get_system_uptime()}]`` "
+                                            f"I'm back online! :globe_with_meridians: :white_check_mark:")
         print(f"Logged in as {self.user.name}\n{self.user.id}\n------\n")
 
 

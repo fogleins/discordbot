@@ -1,8 +1,14 @@
 from discord.ext import commands
 from subprocess import Popen, PIPE
-from cogs.adminonly import is_admin
-from datetime import datetime
+from cogs.adminonly import is_admin, is_moderator
+from datetime import datetime, timedelta
 from asyncio import sleep
+
+
+def get_system_uptime():
+    with open("/proc/uptime", "r") as f:
+        uptime_seconds = float(f.readline().split()[0])
+        return timedelta(seconds=uptime_seconds)
 
 
 class Hardware(commands.Cog):
@@ -87,6 +93,11 @@ class Hardware(commands.Cog):
         self.report_hdd_temp = False
         await ctx.message.delete()
         await ctx.send("Temperature reports have been turned off.")
+
+    @rbp.command(aliases=["sysuptime"])
+    @commands.check(is_moderator)
+    async def system_uptime(self, ctx):
+        await ctx.send(str(get_system_uptime()))
 
     @rbp.command()
     async def neofetch(self, ctx):
