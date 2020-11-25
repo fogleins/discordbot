@@ -11,7 +11,8 @@ class QueryReturnedNoneTypeError(Exception):
 
 
 class Database:
-    def __init__(self, path="../resources/data/discord.db"):
+    # def __init__(self, path="../resources/data/discord.db"):
+    def __init__(self, path="./resources/data/discord.db"):
         self._db = sqlite3.connect(path)
         self._cursor = self._db.cursor()
 

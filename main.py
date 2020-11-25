@@ -1,5 +1,7 @@
 import datetime
+import sys
 import traceback
+import logging
 import gc
 
 import click
@@ -32,8 +34,8 @@ class SzeduletesBot(commands.Bot):
             try:
                 self.load_extension(ext)
             except Exception as e:
-                print(f"{ext} cannot be loaded. [{e}]")
-                traceback.print_exc()
+                logging.error(f"{ext} cannot be loaded. [{e}]")
+                # traceback.print_exc()
 
     def run(self):
         """Starts the bot."""
@@ -72,14 +74,23 @@ class SzeduletesBot(commands.Bot):
             type=discord.ActivityType.listening, name="commands || ?help"))
         await self.get_channel("test").send(f"``[{datetime.datetime.now()}; System uptime: {get_system_uptime()}]`` "
                                             f"I'm back online! :globe_with_meridians: :white_check_mark:")
-        print(f"Logged in as {self.user.name}\n{self.user.id}\n------\n")
+        logging.info(f"Logged in as {self.user.name}\n{self.user.id}\n------\n")
+
+    async def on_error(self, event_method, *args, **kwargs):
+        logging.error('\n'.join(traceback.format_exception(sys.exc_info()[1], args, sys.exc_info()[2])))
 
 
 @click.group(invoke_without_command=True, options_metavar='[options]')
 @click.pass_context
 def main(ctx):
-    bot = SzeduletesBot()
-    bot.run()
+    try:
+        # py 3.9 is needed to use encoding argument
+        logging.basicConfig(filename="./discordbot.log", filemode="a", encoding="utf-8",
+                            format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
+        bot = SzeduletesBot()
+        bot.run()
+    except Exception as e:
+        logging.critical(f"Kezeletlen hiba: {e}\n{traceback.format_exc()}\n\n")
 
 
 if __name__ == '__main__':

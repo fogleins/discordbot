@@ -15,23 +15,6 @@ class Experimental(commands.Cog, name="Experimental"):
     def __init__(self, bot):
         self.bot = bot
 
-    # TODO: is this needed when we have on_command_error?
-    @commands.Cog.listener()
-    async def on_error(self, event):
-        print(event)
-        now = datetime.datetime.now()
-        try:
-            embed = discord.Embed(
-                title=f"``{now}:``",
-                description=f":interrobang: Non-command error: {event} raised an exception:",
-                colour=discord.Colour.from_rgb(255, 0, 13)
-            )
-            embed.set_thumbnail(url=f"{event.guild.icon.url}")
-            embed.set_author(name="Non-command error", icon_url=f"{event.guild.icon.url}")
-            await self.bot.get_channel("logs").send(embed=embed)
-        except Exception as e:
-            print(f"Non-command error. Couldn't send an error message to the logs channel. ({e})")
-
     @commands.group(name="Emojis", aliases=["e", "emote", "emotes", "emojis", "emoji"], case_insensitive=True)
     async def emoji(self, ctx):
         """A command group for custom ascii emojis."""
