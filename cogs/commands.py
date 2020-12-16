@@ -193,7 +193,7 @@ class Commands(commands.Cog):
         file.close()
         message = ctx.message
         await message.add_reaction(u"\U0001F44C")
-        await self.bot.get_textchannel("test").send(f"{ctx.guild.owner.mention} new suggestion(s)!")
+        await self.bot.get_channel("test").send(f"{ctx.guild.owner.mention} new suggestion(s)!")
 
     @commands.command(aliases=["plsfix", "pleasefix", "fix"])
     async def bug(self, ctx):
@@ -204,7 +204,7 @@ class Commands(commands.Cog):
         file.close()
         message = ctx.message
         await message.add_reaction(u"\U0001F916")
-        await self.bot.get_textchannel("test").send(f"{ctx.guild.owner.mention} possible bug(s) reported!")
+        await self.bot.get_channel("test").send(f"{ctx.guild.owner.mention} possible bug(s) reported!")
 
     @commands.command(aliases=["ut"])
     async def uptime(self, ctx):
