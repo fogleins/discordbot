@@ -142,7 +142,7 @@ class Commands(commands.Cog):
         if minimum_role <= top_role:
             await member.add_roles(role_to_add)
             await ctx.message.delete()
-            await self.bot.get_textchannel("logs").send(f"{member.name} has access to nsfw from now on.")
+            await self.bot.get_channel("logs").send(f"{member.name} has access to nsfw from now on.")
             await ctx.send(f"Hey {ctx.message.author.mention}, access granted!")
         else:
             await ctx.send("You don't have a high enough role to do that. :no_entry:")

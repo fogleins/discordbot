@@ -26,7 +26,7 @@ class SzeduletesBot(commands.Bot):
     ]
 
     def __init__(self):
-        super().__init__(command_prefix=".")
+        super().__init__(command_prefix=".", intents=discord.Intents.all())
         self.online_since = datetime.datetime.now()
         self._channel_cache = dict()
 

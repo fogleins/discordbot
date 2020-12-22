@@ -61,10 +61,11 @@ class Experimental(commands.Cog, name="Experimental"):
     @commands.command(aliases=["Kóka", "kóka"])
     async def koka(self, ctx):
         """Best command to date."""
-        rnd = random.randint(1, 4)
-        kep = discord.File(fp=f"./resources/images/koka{rnd}.jpg")
-        await ctx.message.delete()
-        await ctx.send(file=kep)
+        async with ctx.channel.typing():
+            rnd = random.randint(1, 4)
+            kep = discord.File(fp=f"./resources/images/koka{rnd}.jpg")
+            await ctx.message.delete()
+            await ctx.send(file=kep)
 
     @commands.command(aliases=["reserve", "edit", "limit", "max"])
     async def changelimit(self, ctx, limit: int, time_length: float = 120, *args):
