@@ -15,6 +15,20 @@ class Events(commands.Cog):
         now = datetime.datetime.now()
         role = discord.utils.get(member.guild.roles, name="newcomer")
         await member.add_roles(role)
+
+        # if the member joins with a special invite, we give them another role
+        db = Database()
+        invite = db.query("SELECT invite_code, uses FROM invites WHERE note = ?", ("osztálytalálkozó",))
+        guild_invites = await member.guild.invites()
+        for inv in guild_invites:
+            if invite[0] == inv.code and invite[1] < inv.uses:
+                await member.add_roles(discord.utils.get(member.guild.roles, name="osztálytalálkozó"))
+                db.query("UPDATE invites SET uses = ? WHERE note = ?", (inv.uses, "osztálytalálkozó"))
+                db.commit()
+                break
+        db.close()
+
+        # logging the event
         uzenet = f"{member.name} ({member.id}) is now a member of this discord server!"
         embed = discord.Embed(
             title=f"``{now}:`` ",

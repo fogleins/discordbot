@@ -83,6 +83,7 @@ class SzeduletesBot(commands.Bot):
 @click.group(invoke_without_command=True, options_metavar='[options]')
 @click.pass_context
 def main(ctx):
+    bot = None
     try:
         # py 3.9 is needed to use encoding argument
         logging.basicConfig(filename="./discordbot.log", filemode="a", encoding="utf-8",
@@ -91,6 +92,8 @@ def main(ctx):
         bot.run()
     except Exception as e:
         logging.critical(f"Kezeletlen hiba: {e}\n{traceback.format_exc()}\n\n")
+        if bot:  # if bot is not None
+            bot.close()
 
 
 if __name__ == '__main__':
